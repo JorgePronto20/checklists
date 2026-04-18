@@ -6,9 +6,20 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<script>
+  // Impede acesso direto sem login
+  if (localStorage.getItem("auth") !== "ok") {
+    location.href = "login.html";
+  }
+</script>
+
   <div class="container">
     <h2>Dashboard</h2>
     <p>Login com PIN aceite.</p>
+
+    <button onclick="location.href='checklist.html'">Abrir Checklist</button>
   </div>
+
 </body>
 </html>
