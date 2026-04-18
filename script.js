@@ -15,9 +15,11 @@ async function validarPIN() {
     const data = await resposta.json();
 
     if (data.valido) {
-      localStorage.setItem("auth", "ok");
-      location.href = "dashboard.html";
-    } else {
+  localStorage.setItem("auth", "ok");
+  localStorage.setItem("pin", pin);
+  location.href = "dashboard.html";
+}
+else {
       erro.textContent = "PIN inválido ou inativo";
     }
 
