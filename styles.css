@@ -1,0 +1,5 @@
+body { font-family: Arial; background:#f2f2f2; display:flex; justify-content:center; align-items:center; height:100vh; }
+.container { background:white; padding:30px; border-radius:10px; width:300px; text-align:center; }
+input { width:100%; padding:10px; margin:10px 0; font-size:18px; }
+button { width:100%; padding:12px; background:black; color:white; border:none; font-size:18px; cursor:pointer; border-radius:5px; }
+.erro { color:red; margin-top:10px; }
