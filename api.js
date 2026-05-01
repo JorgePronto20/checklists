@@ -3,7 +3,7 @@ async function submeterChecklist() {
   const pin = localStorage.getItem("pin");
 
   const resposta = await fetch(
-    "https://script.google.com/macros/s/AKfycbwxSs_v27UPL9J3UsvCKYFQrBAcJC9fPYWkLfar733rS2GHqgxcdUap5TiXDsxjXUDo/exec",
+    "https://smsworkers.jorgepronto20.workers.dev",
     {
       method: "POST",
       body: JSON.stringify({ itens, pin })
