@@ -1,26 +1,36 @@
+<script>
 async function validarPIN() {
-  const pin = document.getElementById("pin").value;
+    const pin = document.getElementById("pin").value;
 
-  if (!pin || pin.length !== 4) {
-    document.getElementById("erro").textContent = "Insere um PIN válido";
-    return;
-  }
-
-  try {
-    const resposta = await fetch(
-      "https://smsworkers.jorgepronto20.workers.dev/validar?pin=" + pin
-    );
-
-    const dados = await resposta.json();
-
-    if (dados.valido) {
-      localStorage.setItem("pin", pin);
-      window.location.href = "dashboard.html";
-    } else {
-      document.getElementById("erro").textContent = "PIN inválido";
+    if (!pin) {
+        alert("Introduz o PIN");
+        return;
     }
 
-  } catch (e) {
-    document.getElementById("erro").textContent = "Erro de ligação à API";
-  }
+    try {
+        const resposta = await fetch("https://smsworkers.jorgepronto20.workers.dev/validar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ pin })
+        });
+
+        const dados = await resposta.json();
+
+        if (dados.valido) {
+            // Guardar info do colaborador
+            localStorage.setItem("colaborador_id", dados.id);
+            localStorage.setItem("colaborador_nome", dados.nome);
+
+            // Redirecionar para o dashboard
+            window.location.href = "dashboard.html";
+        } else {
+            alert("PIN inválido");
+        }
+
+    } catch (erro) {
+        alert("Erro ao validar PIN: " + erro);
+    }
 }
+</script>
