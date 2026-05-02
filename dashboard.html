@@ -9,17 +9,38 @@
 
 <script>
   // Impede acesso direto sem login
-  if (localStorage.getItem("auth") !== "ok") {
+  const id = localStorage.getItem("colaborador_id");
+  const nome = localStorage.getItem("colaborador_nome");
+
+  if (!id || !nome) {
     location.href = "login.html";
   }
 </script>
 
   <div class="container">
     <h2>Dashboard</h2>
-    <p>Login com PIN aceite.</p>
+
+    <p>Bem-vindo, <strong id="nomeColaborador"></strong></p>
 
     <button onclick="location.href='checklist.html'">Abrir Checklist</button>
+
+    <br><br>
+
+    <button onclick="logout()">Terminar Sessão</button>
   </div>
+
+<script>
+  // Mostrar nome do colaborador
+  document.getElementById("nomeColaborador").textContent =
+    localStorage.getItem("colaborador_nome");
+
+  // Logout
+  function logout() {
+    localStorage.removeItem("colaborador_id");
+    localStorage.removeItem("colaborador_nome");
+    location.href = "login.html";
+  }
+</script>
 
 </body>
 </html>
