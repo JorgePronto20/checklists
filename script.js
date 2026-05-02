@@ -1,9 +1,11 @@
-<script>
 async function validarPIN() {
     const pin = document.getElementById("pin").value;
+    const erro = document.getElementById("erro");
+
+    erro.textContent = ""; // limpar mensagens anteriores
 
     if (!pin) {
-        alert("Introduz o PIN");
+        erro.textContent = "Introduz o PIN";
         return;
     }
 
@@ -26,11 +28,11 @@ async function validarPIN() {
             // Redirecionar para o dashboard
             window.location.href = "dashboard.html";
         } else {
-            alert("PIN inválido");
+            erro.textContent = "PIN inválido";
         }
 
-    } catch (erro) {
-        alert("Erro ao validar PIN: " + erro);
+    } catch (e) {
+        erro.textContent = "Erro ao validar PIN";
+        console.error(e);
     }
 }
-</script>
