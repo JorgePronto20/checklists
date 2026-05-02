@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Histórico</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<script>
+  const id = localStorage.getItem("colaborador_id");
+  const nome = localStorage.getItem("colaborador_nome");
+
+  if (!id || !nome) {
+    location.href = "login.html";
+  }
+</script>
+
+<div class="container">
+  <h2>Histórico de Checklists</h2>
+  <p>Colaborador: <strong id="nomeColaborador"></strong></p>
+
+  <div id="lista"></div>
+
+  <button onclick="location.href='dashboard.html'">Voltar</button>
+</div>
+
+<script>
+  document.getElementById("nomeColaborador").textContent = localStorage.getItem("colaborador_nome");
+
+  async function carregarHistorico() {
+    const id = localStorage.getItem("colaborador_id");
+
+    const resposta = await fetch(
+      `https://smsworkers.jorgepronto20.workers.dev/listar?colaborador_id=${id}`
+    );
+
+    const dados = await resposta.json();
+
+    const lista = document.getElementById("lista");
+
+    if (!dados.length) {
+      lista.innerHTML = "<p>Sem registos.</p>";
+      return;
+    }
+
+    lista.innerHTML = dados.map(item => `
+      <div class="card">
+        <p><strong>Data:</strong> ${item.data}</p>
+        <p><strong>Hora:</strong> ${item.hora}</p>
+        <p><strong>Tipo:</strong> ${item.tipo}</p>
+        <p><strong>Respostas:</strong> ${item.respostas}</p>
+      </div>
+    `).join("");
+  }
+
+  carregarHistorico();
+</script>
+
+</body>
+</html>
