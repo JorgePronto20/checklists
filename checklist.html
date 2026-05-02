@@ -9,13 +9,18 @@
 
 <script>
   // Impede acesso direto sem login
-  if (localStorage.getItem("auth") !== "ok") {
+  const id = localStorage.getItem("colaborador_id");
+  const nome = localStorage.getItem("colaborador_nome");
+
+  if (!id || !nome) {
     location.href = "login.html";
   }
 </script>
 
   <div class="container">
     <h2>Checklist</h2>
+
+    <p>Colaborador: <strong id="nomeColaborador"></strong></p>
 
     <label><input type="checkbox" class="item"> Limpar balcão</label>
     <label><input type="checkbox" class="item"> Verificar fritadeiras</label>
@@ -26,8 +31,13 @@
     <p id="msg"></p>
   </div>
 
-  <!-- Ligar ao ficheiro da API -->
   <script src="api.js"></script>
+
+  <script>
+    // Mostrar nome do colaborador
+    document.getElementById("nomeColaborador").textContent =
+      localStorage.getItem("colaborador_nome");
+  </script>
 
 </body>
 </html>
