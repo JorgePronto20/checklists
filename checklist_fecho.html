@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Checklist Fecho</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<script>
+  if (!localStorage.getItem("colaborador_id")) location.href = "login.html";
+</script>
+
+<div class="container">
+  <h2>Checklist — Fecho</h2>
+
+  <label><input type="checkbox" class="item"> Desligar máquinas</label>
+  <label><input type="checkbox" class="item"> Lavar chão</label>
+  <label><input type="checkbox" class="item"> Fechar armazém</label>
+
+  <button onclick="submeter('fecho')">Submeter</button>
+  <p id="msg"></p>
+</div>
+
+<script src="api.js"></script>
+
+</body>
+</html>
