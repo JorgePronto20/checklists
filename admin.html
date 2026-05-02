@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Admin</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="menu">
+    <button onclick="mostrar('modelos')">Modelos</button>
+    <button onclick="mostrar('itens')">Itens</button>
+    <button onclick="mostrar('colaboradores')">Colaboradores</button>
+    <button onclick="mostrar('alertas')">Alertas</button>
+  </div>
+
+  <div id="conteudo">
+
+    <!-- ==================== MODELOS ==================== -->
+    <section id="modelos" class="secao">
+      <h2>Modelos</h2>
+
+      <form id="formModelo">
+        <input type="text" id="modeloNome" placeholder="Nome do modelo" required>
+        <input type="text" id="modeloCodigo" placeholder="Código" required>
+        <button type="submit">Criar Modelo</button>
+      </form>
+
+      <table id="tabelaModelos"></table>
+    </section>
+
+    <!-- ==================== ITENS ==================== -->
+    <section id="itens" class="secao">
+      <h2>Itens</h2>
+
+      <form id="formItem">
+        <input type="number" id="itemModeloId" placeholder="ID do modelo" required>
+        <input type="text" id="itemTexto" placeholder="Texto do item" required>
+        <input type="number" id="itemOrdem" placeholder="Ordem" required>
+        <button type="submit">Criar Item</button>
+      </form>
+
+      <table id="tabelaItens"></table>
+    </section>
+
+    <!-- ==================== COLABORADORES ==================== -->
+    <section id="colaboradores" class="secao">
+      <h2>Colaboradores</h2>
+
+      <form id="formColaborador">
+        <input type="text" id="colabNome" placeholder="Nome" required>
+        <input type="text" id="colabPin" placeholder="PIN" required>
+        <button type="submit">Criar Colaborador</button>
+      </form>
+
+      <table id="tabelaColaboradores"></table>
+    </section>
+
+    <!-- ==================== ALERTAS ==================== -->
+    <section id="alertas" class="secao">
+      <h2>Alertas</h2>
+
+      <form id="formAlerta">
+        <input type="number" id="alertaModeloId" placeholder="ID do modelo" required>
+        <input type="time" id="alertaHora" required>
+        <input type="text" id="alertaEmails" placeholder="Emails separados por vírgula" required>
+        <button type="submit">Criar Alerta</button>
+      </form>
+
+      <table id="tabelaAlertas"></table>
+    </section>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
