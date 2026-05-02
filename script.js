@@ -1,38 +1,36 @@
+const API = "https://smsworkers.jorgepronto20.workers.dev";
+
+// -----------------------------
+// LOGIN
+// -----------------------------
 async function validarPIN() {
-    const pin = document.getElementById("pin").value;
-    const erro = document.getElementById("erro");
+  const pin = document.getElementById("pin").value;
+  const msg = document.getElementById("msg");
 
-    erro.textContent = ""; // limpar mensagens anteriores
+  if (!pin) {
+    msg.textContent = "Insere o PIN.";
+    return;
+  }
 
-    if (!pin) {
-        erro.textContent = "Introduz o PIN";
-        return;
+  try {
+    const resposta = await fetch(API + "/validar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.valido) {
+      localStorage.setItem("auth", "ok");
+      localStorage.setItem("colaborador_id", dados.id);
+      localStorage.setItem("colaborador_nome", dados.nome);
+      location.href = "dashboard.html";
+    } else {
+      msg.textContent = "PIN inválido.";
     }
 
-    try {
-        const resposta = await fetch("https://smsworkers.jorgepronto20.workers.dev/validar", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ pin })
-        });
-
-        const dados = await resposta.json();
-
-        if (dados.valido) {
-            // Guardar info do colaborador
-            localStorage.setItem("colaborador_id", dados.id);
-            localStorage.setItem("colaborador_nome", dados.nome);
-
-            // Redirecionar para o dashboard
-            window.location.href = "dashboard.html";
-        } else {
-            erro.textContent = "PIN inválido";
-        }
-
-    } catch (e) {
-        erro.textContent = "Erro ao validar PIN";
-        console.error(e);
-    }
+  } catch (e) {
+    msg.textContent = "Erro ao ligar ao servidor.";
+  }
 }
