@@ -9,35 +9,34 @@
 
 <script>
   // Impede acesso direto sem login
-  const id = localStorage.getItem("colaborador_id");
-  const nome = localStorage.getItem("colaborador_nome");
-
-  if (!id || !nome) {
+  if (localStorage.getItem("auth") !== "ok") {
     location.href = "login.html";
   }
 </script>
 
-  <div class="container">
-    <h2>Dashboard</h2>
+<div class="container">
+  <h2>Dashboard</h2>
 
-    <p>Bem-vindo, <strong id="nomeColaborador"></strong></p>
+  <p>Bem-vindo, <strong id="nome"></strong></p>
 
-    <button onclick="location.href='checklist.html'">Abrir Checklist</button>
+  <h3>Escolha o tipo de checklist</h3>
 
-    <br><br>
+  <button onclick="location.href='checklist_abertura.html'">Checklist Abertura</button>
+  <button onclick="location.href='checklist_fecho.html'">Checklist Fecho</button>
+  <button onclick="location.href='checklist_haccp.html'">Checklist HACCP</button>
 
-    <button onclick="logout()">Terminar Sessão</button>
-  </div>
+  <br><br>
+
+  <button onclick="logout()" style="background:#b33">Terminar Sessão</button>
+</div>
 
 <script>
   // Mostrar nome do colaborador
-  document.getElementById("nomeColaborador").textContent =
-    localStorage.getItem("colaborador_nome");
+  document.getElementById("nome").textContent =
+    localStorage.getItem("colaborador_nome") || "";
 
-  // Logout
   function logout() {
-    localStorage.removeItem("colaborador_id");
-    localStorage.removeItem("colaborador_nome");
+    localStorage.clear();
     location.href = "login.html";
   }
 </script>
