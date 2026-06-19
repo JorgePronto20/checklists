@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHECKLISTS — Admin</title>
+<style>
+  :root {
+    --primary:#2563eb;--primary-dark:#1d4ed8;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+    --dark:#0f172a;--dark2:#1e293b;--dark3:#334155;--text:#e2e8f0;--text-muted:#94a3b8;
+    --border:#334155;--card:#1e293b;--radius:12px;--radius-sm:8px;--font:'Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font);background:var(--dark);color:var(--text);min-height:100vh;}
+
+  /* LOGIN */
+  #loginGate{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:9999;}
+  .login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:44px 36px;width:380px;max-width:95vw;text-align:center;}
+  .login-logo{font-size:1.8rem;font-weight:800;color:var(--primary);margin-bottom:4px;}
+  .login-sub{font-size:0.82rem;color:var(--text-muted);margin-bottom:28px;}
+  .login-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;font-size:0.73rem;color:#f87171;margin-bottom:20px;}
+  .form-group{margin-bottom:14px;text-align:left;}
+  .form-label{display:block;font-size:0.78rem;color:var(--text-muted);margin-bottom:5px;}
+  .form-control{width:100%;padding:10px 14px;background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.9rem;font-family:var(--font);}
+  .form-control:focus{outline:none;border-color:var(--primary);}
+  .btn-full{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:4px;}
+  .btn-full:hover{background:var(--primary-dark);}
+  .login-hint{font-size:0.75rem;color:var(--text-muted);margin-top:14px;}
+  .login-err{color:#f87171;font-size:0.8rem;margin-bottom:10px;display:none;}
+
+  /* LAYOUT */
+  #adminApp{display:none;}
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:230px;background:var(--dark2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+  .sidebar-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
+  .sidebar-logo-text{font-size:1.1rem;font-weight:800;color:var(--primary);}
+  .sidebar-logo-sub{font-size:0.68rem;color:var(--danger);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+  .sidebar-nav{flex:1;padding:14px 10px;overflow-y:auto;}
+  .nav-section{font-size:0.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:8px 8px 4px;margin-top:8px;}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;color:var(--text-muted);font-size:0.85rem;margin-bottom:2px;background:none;border:none;width:100%;text-align:left;}
+  .nav-item:hover{background:var(--dark3);color:var(--text);}
+  .nav-item.active{background:rgba(37,99,235,0.18);color:var(--primary);font-weight:600;}
+  .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+  .main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{background:var(--dark2);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+  .topbar-title{font-size:1.05rem;font-weight:700;}
+  .content{flex:1;padding:24px;}
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* KPI */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:24px;}
+  .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--primary));}
+  .kpi-label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .kpi-value{font-size:1.9rem;font-weight:800;line-height:1;}
+  .kpi-sub{font-size:0.72rem;color:var(--text-muted);margin-top:5px;}
+
+  /* TABLE */
+  .section-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .section-title{font-size:0.92rem;font-weight:700;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  th{text-align:left;padding:9px 11px;color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);}
+  td{padding:10px 11px;border-bottom:1px solid rgba(51,65,85,0.4);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .td-actions{display:flex;gap:5px;}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+  .badge-success{background:rgba(16,185,129,0.15);color:#34d399;}
+  .badge-warning{background:rgba(245,158,11,0.15);color:#fbbf24;}
+  .badge-danger{background:rgba(239,68,68,0.15);color:#f87171;}
+  .badge-info{background:rgba(14,165,233,0.15);color:#38bdf8;}
+  .badge-neutral{background:rgba(148,163,184,0.15);color:#94a3b8;}
+
+  /* BUTTONS */
+  .btn{padding:7px 14px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-success{background:var(--success);color:#fff;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-ghost{background:var(--dark3);color:var(--text);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--dark);}
+  .btn-sm{padding:5px 10px;font-size:0.75rem;}
+  .btn-icon{padding:5px 9px;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:500;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;width:500px;max-width:100%;max-height:90vh;overflow-y:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .modal-title{font-size:1rem;font-weight:700;}
+  .modal-close{background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+
+  /* TOAST */
+  .toast-container{position:fixed;bottom:20px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:7px;}
+  .toast{padding:11px 16px;border-radius:var(--radius-sm);font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.4);animation:slideIn .3s ease;display:flex;align-items:center;gap:7px;}
+  .toast-success{background:#065f46;border:1px solid #10b981;color:#a7f3d0;}
+  .toast-error{background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;}
+  .toast-info{background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd;}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  /* LICENSE KEY */
+  .license-key{font-family:monospace;letter-spacing:3px;font-size:0.88rem;background:var(--dark);padding:6px 12px;border-radius:6px;color:#93c5fd;user-select:all;cursor:pointer;border:1px solid var(--border);}
+  .license-key:hover{border-color:var(--primary);}
+
+  /* CHART MINI */
+  .mini-chart{height:60px;display:flex;align-items:flex-end;gap:4px;padding:8px 0;}
+  .mini-bar{flex:1;background:rgba(37,99,235,0.5);border-radius:3px 3px 0 0;min-height:4px;transition:height .5s;}
+  .mini-bar:hover{background:var(--primary);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginGate">
+  <div class="login-box">
+    <div class="login-logo">☑ CHECKLISTS</div>
+    <div class="login-sub">Painel de Administração</div>
+    <div class="login-badge">🔒 Acesso restrito</div>
+    <div class="login-err" id="loginErr">Credenciais incorretas</div>
+    <div class="form-group">
+      <label class="form-label">Utilizador admin</label>
+      <input type="text" class="form-control" id="adminUser" value="admin" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" id="adminPass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-full" onclick="doLogin()">Entrar no Admin</button>
+    <div class="login-hint">Demo: admin / admin123</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-text">☑ CHECKLISTS</div>
+        <div class="sidebar-logo-sub">Admin Panel</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Gestão</div>
+        <button class="nav-item active" onclick="navigate('dashboard',this)">📊 Dashboard</button>
+        <button class="nav-item" onclick="navigate('licencas',this)">🔑 Licenças</button>
+        <button class="nav-item" onclick="navigate('pagamentos',this)">💳 Pagamentos</button>
+        <button class="nav-item" onclick="navigate('clientes',this)">🏢 Clientes</button>
+        <div class="nav-section">Conteúdo</div>
+        <button class="nav-item" onclick="navigate('landings',this)">🖼️ Landings</button>
+        <div class="nav-section">Sistema</div>
+        <button class="nav-item" onclick="navigate('instancias',this)">🌐 Instâncias</button>
+        <button class="nav-item" onclick="navigate('logs',this)">📜 Logs</button>
+        <button class="nav-item" onclick="navigate('config',this)">⚙️ Config</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="doLogout()">🔓 Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="pageTitle">Dashboard Admin</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:0.78rem;color:var(--text-muted);" id="adminClock"></span>
+          <button class="btn btn-ghost btn-sm" onclick="refreshPage()">↻</button>
+          <a href="landing.html" class="btn btn-ghost btn-sm" target="_blank">🌐 Landing</a>
+          <a href="checklists-app.html" class="btn btn-ghost btn-sm" target="_blank">🚀 App</a>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- DASHBOARD -->
+        <div class="page active" id="page-dashboard">
+          <div class="kpi-grid" id="adminKpis"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">Últimas Ativações</div></div>
+              <div id="ultimasAtivacoes"></div>
+            </div>
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">Receita (últimos 7 dias)</div></div>
+              <div id="receitaChart" class="mini-chart"></div>
+              <div style="font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:4px;">€/dia</div>
+            </div>
+          </div>
+          <div class="section-card" style="margin-top:16px;">
+            <div class="section-header">
+              <div class="section-title">Licenças a Expirar (30 dias)</div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('licencas',null)">Ver todas</button>
+            </div>
+            <div id="licencasExpirando"></div>
+          </div>
+        </div>
+
+        <!-- LICENÇAS -->
+        <div class="page" id="page-licencas">
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">Gestão de Licenças</div>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="searchLic" class="form-control" style="width:200px;font-size:0.8rem;padding:7px 12px;" placeholder="Pesquisar..." oninput="renderLicencas()">
+                <button class="btn btn-primary" onclick="openModal('modalLicenca')">+ Nova</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Chave</th><th>Empresa</th><th>Plano</th><th>Lojas</th><th>Estado</th><th>Expira</th><th>Ações</th></tr></thead>
+                <tbody id="licencasBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGAMENTOS -->
+        <div class="page" id="page-pagamentos">
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">Histórico de Pagamentos</div>
+              <div style="display:flex;gap:8px;">
+                <select class="form-control" style="width:auto;font-size:0.8rem;padding:7px 12px;" id="filterPag" onchange="renderPagamentos()">
+                  <option value="">Todos</option>
+                  <option value="confirmado">Confirmados</option>
+                  <option value="pendente">Pendentes</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>ID</th><th>Cliente</th><th>Plano</th><th>Valor</th><th>Método</th><th>Estado</th><th>Data</th><th>Ações</th></tr></thead>
+                <tbody id="pagamentosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div class="page" id="page-clientes">
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">Clientes</div>
+              <button class="btn btn-primary" onclick="openModal('modalCliente')">+ Novo Cliente</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>Empresa</th><th>Email</th><th>Plano</th><th>Licenças</th><th>Desde</th><th>Ações</th></tr></thead>
+                <tbody id="clientesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- INSTÂNCIAS -->
+        <div class="page" id="page-instancias">
+          <div class="section-card">
+            <div class="section-header"><div class="section-title">Instâncias Ativas</div></div>
+            <div id="instanciasList"></div>
+          </div>
+          <div class="section-card">
+            <div class="section-header"><div class="section-title">Cloudflare Workers</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div style="background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:14px;">
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;">API Worker</div>
+                <div style="font-size:0.88rem;font-weight:700;">checklists-api</div>
+                <div style="margin-top:8px;"><span class="badge badge-success">● Online</span></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">workers.dev · D1 database</div>
+              </div>
+              <div style="background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:14px;">
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;">License Worker</div>
+                <div style="font-size:0.88rem;font-weight:700;">checklists-license</div>
+                <div style="margin-top:8px;"><span class="badge badge-success">● Online</span></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">KV store · validação</div>
+              </div>
+              <div style="background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:14px;">
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;">Payment Worker</div>
+                <div style="font-size:0.88rem;font-weight:700;">checklists-payments</div>
+                <div style="margin-top:8px;"><span class="badge badge-warning">⚠ Config</span></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">MB WAY API · webhooks</div>
+              </div>
+              <div style="background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:14px;">
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;">GitHub Pages</div>
+                <div style="font-size:0.88rem;font-weight:700;">checklists.app</div>
+                <div style="margin-top:8px;"><span class="badge badge-success">● Online</span></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">Static SPA · CDN</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGS -->
+        <div class="page" id="page-logs">
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">Log do Sistema</div>
+              <button class="btn btn-ghost btn-sm" onclick="clearLogs()">🗑 Limpar</button>
+            </div>
+            <div id="logsContainer" style="font-family:monospace;font-size:0.78rem;display:flex;flex-direction:column;gap:4px;max-height:500px;overflow-y:auto;"></div>
+          </div>
+        </div>
+
+        <!-- CONFIG -->
+        <div class="page" id="page-config">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">API Cloudflare</div></div>
+              <div class="form-group">
+                <label class="form-label">checklists-api.jorgepronto20.workers.dev</label>
+                <input type="text" class="form-control" id="cfApiUrl" placeholder="https://checklists-api.workers.dev">
+              </div>
+              <div class="form-group">
+                <label class="form-label">f3A9!kP2#Q7zL4@tM8vR1$eC6uN0%hB5xW3^sJ9gD2&yT7pF4</label>
+                <input type="password" class="form-control" id="cfAdminSecret" placeholder="••••••••">
+              </div>
+              <button class="btn btn-primary" onclick="saveAdminConfig()">💾 Guardar</button>
+            </div>
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">Pagamentos MB WAY</div></div>
+              <div class="form-group">
+                <label class="form-label">MB WAY API Key</label>
+                <input type="password" class="form-control" id="mbwayKey" placeholder="••••••••">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Merchant ID</label>
+                <input type="text" class="form-control" id="mbwayMerchant" placeholder="MERCHANT_ID">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Webhook URL</label>
+                <input type="text" class="form-control" id="mbwayWebhook" placeholder="https://...">
+              </div>
+              <button class="btn btn-primary" onclick="saveAdminConfig()">💾 Guardar</button>
+            </div>
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">Email (SMTP)</div></div>
+              <div class="form-group">
+                <label class="form-label">SMTP Host</label>
+                <input type="text" class="form-control" id="smtpHost" placeholder="smtp.empresa.pt">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email de envio</label>
+                <input type="email" class="form-control" id="smtpFrom" placeholder="noreply@checklists.app">
+              </div>
+              <button class="btn btn-primary" onclick="saveAdminConfig()">💾 Guardar</button>
+            </div>
+            <div class="section-card">
+              <div class="section-header"><div class="section-title">Admin</div></div>
+              <div class="form-group">
+                <label class="form-label">Utilizador admin</label>
+                <input type="text" class="form-control" id="newAdminUser" placeholder="admin">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nova password</label>
+                <input type="password" class="form-control" id="newAdminPass" placeholder="••••••">
+              </div>
+              <button class="btn btn-primary" onclick="changeAdminPass()">🔐 Alterar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANDINGS CMS -->
+        <div class="page" id="page-landings">
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">🖼️ Gestão de Landings</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);" id="cmsApiStatus">Worker não configurado</div>
+            </div>
+            <div id="landingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
+          </div>
+
+          <!-- EDITOR -->
+          <div class="section-card" id="landingEditor" style="display:none;">
+            <div class="section-header">
+              <div class="section-title" id="editorTitle">Editar Landing</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="cancelEditLanding()">✕ Cancelar</button>
+                <button class="btn btn-primary btn-sm" onclick="saveLanding()">💾 Guardar no KV</button>
+              </div>
+            </div>
+
+            <input type="hidden" id="editingApp">
+
+            <!-- ESTADO -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <div style="font-size:0.88rem;font-weight:700;">Estado da landing</div>
+                  <div style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">Inactiva redireciona para o hub com mensagem "Em breve"</div>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                  <input type="checkbox" id="editActive" style="width:18px;height:18px;accent-color:var(--primary);">
+                  <span style="font-size:0.85rem;font-weight:600;" id="activeLabel">Activa</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- HERO -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Hero</div>
+              <div class="form-group">
+                <label class="form-label">Badge (ex: "Plataforma Operacional")</label>
+                <input type="text" class="form-control" id="editBadge" placeholder="Badge acima do título">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Título principal</label>
+                <input type="text" class="form-control" id="editTitle" placeholder="Título da landing">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Subtítulo / descrição</label>
+                <textarea class="form-control" id="editSubtitle" rows="3" placeholder="Descrição curta..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">URL da imagem hero (screenshot ou foto)</label>
+                <input type="url" class="form-control" id="editHeroImage" placeholder="https://...">
+              </div>
+            </div>
+
+            <!-- FUNCIONALIDADES -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Funcionalidades</div>
+                <button class="btn btn-ghost btn-sm" onclick="addFeature()">+ Adicionar</button>
+              </div>
+              <div id="featuresList" style="display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+
+            <!-- PLANOS -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Planos de Preço</div>
+              <div id="plansList" style="display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">FAQ</div>
+                <button class="btn btn-ghost btn-sm" onclick="addFaq()">+ Adicionar</button>
+              </div>
+              <div id="faqList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+
+            <!-- CTA -->
+            <div class="section-card" style="background:var(--dark);">
+              <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">CTA Principal</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Texto do botão</label>
+                  <input type="text" class="form-control" id="editCtaText" placeholder="Começar agora">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">URL destino</label>
+                  <input type="text" class="form-control" id="editCtaUrl" placeholder="checkout.html?app=...">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalLicenca">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalLicTitle">Nova Licença</div>
+      <button class="modal-close" onclick="closeModal('modalLicenca')">✕</button>
+    </div>
+    <input type="hidden" id="licEditId">
+    <div class="form-group">
+      <label class="form-label">Empresa *</label>
+      <input type="text" class="form-control" id="licEmpresa" placeholder="Nome da empresa">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-control" id="licTipo">
+          <option value="starter">Starter</option>
+          <option value="business" selected>Business</option>
+          <option value="enterprise">Enterprise</option>
+          <option value="demo">Demo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nº Lojas</label>
+        <input type="number" class="form-control" id="licLojas" value="5" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Validade (dias)</label>
+        <input type="number" class="form-control" id="licDias" value="365">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email do cliente</label>
+        <input type="email" class="form-control" id="licEmail" placeholder="cliente@empresa.pt">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Chave (deixar vazio para gerar)</label>
+      <input type="text" class="form-control" id="licChave" placeholder="Auto-gerada" style="font-family:monospace;letter-spacing:2px;">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalLicenca')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLicenca()">💾 Criar Licença</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Novo Cliente</div>
+      <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome *</label><input type="text" class="form-control" id="cliNome"></div>
+      <div class="form-group"><label class="form-label">Empresa</label><input type="text" class="form-control" id="cliEmpresa"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-control" id="cliEmail"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Telefone</label><input type="tel" class="form-control" id="cliTelefone"></div>
+      <div class="form-group">
+        <label class="form-label">Plano</label>
+        <select class="form-control" id="cliPlano">
+          <option value="starter">Starter</option>
+          <option value="business" selected>Business</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalCliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCliente()">💾 Criar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// === ADMIN STATE ===
+let ADB = { licencas:[], pagamentos:[], clientes:[], logs:[] };
+let currentPage = 'dashboard';
+
+// === LOGIN ===
+function doLogin() {
+  const u = document.getElementById('adminUser').value;
+  const p = document.getElementById('adminPass').value;
+  const err = document.getElementById('loginErr');
+  // In production: validate against Cloudflare Worker + hashed secret
+  const ADMIN_USER = localStorage.getItem('admin_user') || 'admin';
+  const ADMIN_PASS = localStorage.getItem('admin_pass') || 'admin123';
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    err.style.display = 'none';
+    initAdmin();
+  } else {
+    err.style.display = 'block';
+    addLog('error', 'Tentativa de login falhada: ' + u);
+  }
+}
+
+function doLogout() {
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('adminPass').value = '';
+}
+
+// === INIT ===
+function initAdmin() {
+  loadAdminStorage();
+  seedAdminDemo();
+  setupAdminClock();
+  renderDashboard();
+  addLog('info', 'Admin autenticado com sucesso');
+}
+
+function loadAdminStorage() {
+  try { const s = localStorage.getItem('checklists_admin'); if(s) ADB = JSON.parse(s); } catch(e) {}
+}
+
+function saveAdminStorage() { localStorage.setItem('checklists_admin', JSON.stringify(ADB)); }
+
+function seedAdminDemo() {
+  if (ADB.licencas.length) return;
+  const now = Date.now();
+  ADB.licencas = [
+    { id:1, chave:'STRT-A1B2-C3D4-E5F6', empresa:'Café Lisboa', tipo:'starter', lojas:1, email:'cafe@lisboa.pt', ativo:1, criado_em:new Date(now-86400000*30).toISOString(), expira_em:new Date(now+86400000*335).toISOString() },
+    { id:2, chave:'BIZN-X1Y2-Z3W4-V5U6', empresa:'Rede Pastelaria Norte', tipo:'business', lojas:8, email:'geral@pastelaria.pt', ativo:1, criado_em:new Date(now-86400000*15).toISOString(), expira_em:new Date(now+86400000*25).toISOString() },
+    { id:3, chave:'ENTR-P1Q2-R3S4-T5V6', empresa:'Franchising Express', tipo:'enterprise', lojas:999, email:'tech@franchise.pt', ativo:1, criado_em:new Date(now-86400000*5).toISOString(), expira_em:new Date(now+86400000*360).toISOString() },
+    { id:4, chave:'DEMO-DEMO-DEMO-0001', empresa:'Demonstração', tipo:'demo', lojas:1, email:'demo@checklists.app', ativo:1, criado_em:new Date(now-86400000*2).toISOString(), expira_em:new Date(now+86400000*28).toISOString() }
+  ];
+  ADB.pagamentos = [
+    { id:1, cliente:'Café Lisboa', email:'cafe@lisboa.pt', plano:'Starter', valor:19, metodo:'MB WAY', estado:'confirmado', data:new Date(now-86400000*30).toISOString(), licenca_id:1 },
+    { id:2, cliente:'Rede Pastelaria Norte', email:'geral@pastelaria.pt', plano:'Business', valor:49, metodo:'MB WAY', estado:'confirmado', data:new Date(now-86400000*15).toISOString(), licenca_id:2 },
+    { id:3, cliente:'Franchising Express', email:'tech@franchise.pt', plano:'Enterprise', valor:99, metodo:'Multibanco', estado:'confirmado', data:new Date(now-86400000*5).toISOString(), licenca_id:3 },
+    { id:4, cliente:'João Silva', email:'joao@email.pt', plano:'Starter', valor:19, metodo:'MB WAY', estado:'pendente', data:new Date(now-3600000).toISOString(), licenca_id:null }
+  ];
+  ADB.clientes = [
+    { id:1, nome:'Ana Costa', empresa:'Café Lisboa', email:'cafe@lisboa.pt', telefone:'912345678', plano:'starter', criado_em:new Date(now-86400000*30).toISOString() },
+    { id:2, nome:'Pedro Alves', empresa:'Rede Pastelaria Norte', email:'geral@pastelaria.pt', telefone:'934567890', plano:'business', criado_em:new Date(now-86400000*15).toISOString() },
+    { id:3, nome:'Sofia Rodrigues', empresa:'Franchising Express', email:'tech@franchise.pt', telefone:'967890123', plano:'enterprise', criado_em:new Date(now-86400000*5).toISOString() }
+  ];
+  ADB.logs = [
+    { level:'info', msg:'Sistema iniciado', ts:new Date().toISOString() },
+    { level:'success', msg:'Licença ativada: Café Lisboa', ts:new Date(now-86400000*30).toISOString() },
+    { level:'success', msg:'Pagamento confirmado: 49€ MB WAY', ts:new Date(now-86400000*15).toISOString() },
+    { level:'warning', msg:'Licença a expirar em 25 dias: Rede Pastelaria Norte', ts:new Date().toISOString() }
+  ];
+  saveAdminStorage();
+}
+
+// === NAVIGATION ===
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  currentPage = page;
+  const titles = { dashboard:'Dashboard Admin', licencas:'Licenças', pagamentos:'Pagamentos', clientes:'Clientes', instancias:'Instâncias', logs:'Logs', config:'Configurações' };
+  document.getElementById('pageTitle').textContent = titles[page]||page;
+  refreshPage();
+}
+
+function refreshPage() {
+  const fns = { dashboard:renderDashboard, licencas:renderLicencas, pagamentos:renderPagamentos, clientes:renderClientes, instancias:renderInstancias, logs:renderLogs, config:renderConfig };
+  if(fns[currentPage]) fns[currentPage]();
+}
+
+// === DASHBOARD ===
+function renderDashboard() {
+  const totalReceita = ADB.pagamentos.filter(p=>p.estado==='confirmado').reduce((s,p)=>s+p.valor,0);
+  const licAtivas = ADB.licencas.filter(l=>l.ativo).length;
+  const pagPendentes = ADB.pagamentos.filter(p=>p.estado==='pendente').length;
+  const now = Date.now();
+  const expira30 = ADB.licencas.filter(l=>{ const d=new Date(l.expira_em)-now; return d>0 && d<30*86400000; }).length;
+  document.getElementById('adminKpis').innerHTML = [
+    { label:'Receita Total', value:'€'+totalReceita, sub:'pagamentos confirmados', color:'var(--success)' },
+    { label:'Licenças Ativas', value:licAtivas, sub:'em vigor', color:'var(--primary)' },
+    { label:'Clientes', value:ADB.clientes.length, sub:'registados', color:'#8b5cf6' },
+    { label:'Pag. Pendentes', value:pagPendentes, sub:'a confirmar', color:'var(--warning)' },
+    { label:'Expiram em 30d', value:expira30, sub:'requerem atenção', color:'var(--danger)' },
+    { label:'Total Vendas', value:ADB.pagamentos.filter(p=>p.estado==='confirmado').length, sub:'transações', color:'var(--secondary,#0ea5e9)' }
+  ].map(k=>`<div class="kpi-card" style="--kpi-color:${k.color}"><div class="kpi-label">${k.label}</div><div class="kpi-value" style="color:${k.color}">${k.value}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
+
+  // Últimas ativações
+  document.getElementById('ultimasAtivacoes').innerHTML = [...ADB.licencas].reverse().slice(0,5).map(l=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(51,65,85,0.4);">
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">${l.empresa}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);">${planoBadge(l.tipo)} · ${l.email}</div>
+      </div>
+      <div style="text-align:right;">
+        ${l.ativo?'<span class="badge badge-success">Ativa</span>':'<span class="badge badge-neutral">Inativa</span>'}
+        <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;">${formatDate(l.criado_em)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Mini receita chart (7 dias)
+  const labels = [];
+  const vals = [];
+  for(let i=6;i>=0;i--) {
+    const d = new Date(now - i*86400000);
+    const dd = d.toISOString().split('T')[0];
+    labels.push(d.getDate());
+    const v = ADB.pagamentos.filter(p=>p.estado==='confirmado' && p.data.startsWith(dd)).reduce((s,p)=>s+p.valor,0);
+    vals.push(v);
+  }
+  const maxV = Math.max(...vals, 1);
+  document.getElementById('receitaChart').innerHTML = vals.map((v,i)=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="font-size:0.65rem;color:var(--text-muted);">${v>0?'€'+v:''}</div>
+      <div class="mini-bar" style="height:${Math.max(4, Math.round(v/maxV*44))}px;" title="${labels[i]}: €${v}"></div>
+      <div style="font-size:0.65rem;color:var(--text-muted);">${labels[i]}</div>
+    </div>
+  `).join('');
+
+  // Licenças expirando
+  const expiram = ADB.licencas.filter(l=>{ const d=new Date(l.expira_em)-now; return d>0 && d<30*86400000; });
+  document.getElementById('licencasExpirando').innerHTML = expiram.length ? expiram.map(l=>{
+    const days = Math.round((new Date(l.expira_em)-now)/86400000);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(51,65,85,0.4);">
+      <div><div style="font-size:0.85rem;font-weight:600;">${l.empresa}</div>
+      <div style="font-size:0.76rem;color:var(--text-muted);">${planoBadge(l.tipo)}</div></div>
+      <div style="text-align:right;">
+        <span class="badge badge-danger">⚠ ${days} dias</span>
+        <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;">${formatDate(l.expira_em)}</div>
+      </div>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:0.83rem;">✅ Sem licenças a expirar nos próximos 30 dias</div>';
+}
+
+// === LICENÇAS ===
+function renderLicencas() {
+  const search = document.getElementById('searchLic')?.value?.toLowerCase()||'';
+  let list = ADB.licencas;
+  if(search) list = list.filter(l=>(l.empresa||'').toLowerCase().includes(search)||(l.chave||'').toLowerCase().includes(search));
+  document.getElementById('licencasBody').innerHTML = list.length ? list.map(l=>{
+    const exp = new Date(l.expira_em);
+    const days = Math.round((exp-Date.now())/86400000);
+    const expStatus = days<0 ? '<span class="badge badge-danger">Expirada</span>' : days<30 ? `<span class="badge badge-warning">${days}d</span>` : `<span class="badge badge-success">${days}d</span>`;
+    return `<tr>
+      <td><div class="license-key" onclick="copyKey('${l.chave}')" title="Clique para copiar">${l.chave}</div></td>
+      <td><div style="font-size:0.85rem;font-weight:600;">${l.empresa}</div><div style="font-size:0.73rem;color:var(--text-muted);">${l.email||''}</div></td>
+      <td>${planoBadge(l.tipo)}</td>
+      <td><span class="badge badge-info">${l.lojas}</span></td>
+      <td>${l.ativo?'<span class="badge badge-success">Ativa</span>':'<span class="badge badge-neutral">Inativa</span>'}</td>
+      <td>${expStatus}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="renovarLicenca(${l.id})" title="Renovar">🔄</button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="copyKey('${l.chave}')" title="Copiar chave">📋</button>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="revogarLicenca(${l.id})" title="Revogar">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">Sem licenças</td></tr>';
+}
+
+function saveLicenca() {
+  const empresa = document.getElementById('licEmpresa').value.trim();
+  if(!empresa) { toast('Empresa obrigatória','error'); return; }
+  let chave = document.getElementById('licChave').value.trim();
+  if(!chave) chave = genKey();
+  const dias = parseInt(document.getElementById('licDias').value)||365;
+  ADB.licencas.push({
+    id: Date.now(),
+    chave, empresa,
+    tipo: document.getElementById('licTipo').value,
+    lojas: parseInt(document.getElementById('licLojas').value)||1,
+    email: document.getElementById('licEmail').value,
+    ativo: 1,
+    criado_em: new Date().toISOString(),
+    expira_em: new Date(Date.now()+dias*86400000).toISOString()
+  });
+  addLog('success', 'Licença criada: '+empresa+' ('+chave+')');
+  saveAdminStorage(); closeModal('modalLicenca'); renderLicencas();
+  toast('Licença criada: '+chave,'success');
+}
+
+function renovarLicenca(id) {
+  const l = ADB.licencas.find(x=>x.id===id);
+  if(!l) return;
+  const now = new Date(Math.max(Date.now(), new Date(l.expira_em)));
+  l.expira_em = new Date(now.getTime()+365*86400000).toISOString();
+  l.ativo = 1;
+  addLog('info', 'Licença renovada: '+l.empresa);
+  saveAdminStorage(); renderLicencas(); toast('Licença renovada por +1 ano','success');
+}
+
+function revogarLicenca(id) {
+  if(!confirm('Revogar esta licença?')) return;
+  const l = ADB.licencas.find(x=>x.id===id);
+  if(l) { l.ativo=0; addLog('warning','Licença revogada: '+l.empresa); }
+  saveAdminStorage(); renderLicencas(); toast('Licença revogada','success');
+}
+
+function copyKey(key) {
+  navigator.clipboard?.writeText(key); toast('Chave copiada: '+key,'info');
+}
+
+function genKey() {
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const seg=()=>Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  return [seg(),seg(),seg(),seg()].join('-');
+}
+
+// === PAGAMENTOS ===
+function renderPagamentos() {
+  const f = document.getElementById('filterPag')?.value||'';
+  let list = [...ADB.pagamentos].reverse();
+  if(f) list = list.filter(p=>p.estado===f);
+  document.getElementById('pagamentosBody').innerHTML = list.length ? list.map(p=>`<tr>
+    <td><span style="font-family:monospace;color:var(--text-muted);">#${p.id}</span></td>
+    <td><div style="font-size:0.85rem;font-weight:600;">${p.cliente}</div><div style="font-size:0.73rem;color:var(--text-muted);">${p.email}</div></td>
+    <td>${planoBadge(p.plano?.toLowerCase())}</td>
+    <td><span style="font-weight:700;color:var(--success);">€${p.valor}</span></td>
+    <td><span class="badge badge-info">${p.metodo}</span></td>
+    <td>${estadoPagBadge(p.estado)}</td>
+    <td style="font-size:0.78rem;color:var(--text-muted);">${formatDate(p.data)}</td>
+    <td><div class="td-actions">
+      ${p.estado==='pendente'?`<button class="btn btn-success btn-sm" onclick="confirmarPagamento(${p.id})">✓ Confirmar</button>`:''}
+      <button class="btn btn-ghost btn-icon btn-sm" onclick="verPagamento(${p.id})">👁</button>
+    </div></td>
+  </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">Sem pagamentos</td></tr>';
+}
+
+function confirmarPagamento(id) {
+  const p = ADB.pagamentos.find(x=>x.id===id);
+  if(!p) return;
+  p.estado='confirmado';
+  // Auto-create license
+  const key = genKey();
+  ADB.licencas.push({ id:Date.now(), chave:key, empresa:p.cliente, tipo:p.plano?.toLowerCase()||'starter', lojas:p.plano==='Enterprise'?999:p.plano==='Business'?10:1, email:p.email, ativo:1, criado_em:new Date().toISOString(), expira_em:new Date(Date.now()+365*86400000).toISOString() });
+  p.licenca_id = ADB.licencas[ADB.licencas.length-1].id;
+  addLog('success','Pagamento confirmado €'+p.valor+' ('+p.cliente+') → licença '+key);
+  saveAdminStorage(); renderPagamentos();
+  toast('Pagamento confirmado! Licença gerada: '+key,'success');
+}
+
+function verPagamento(id) { const p=ADB.pagamentos.find(x=>x.id===id); if(p) alert(JSON.stringify(p,null,2)); }
+
+// === CLIENTES ===
+function renderClientes() {
+  document.getElementById('clientesBody').innerHTML = ADB.clientes.length ? ADB.clientes.map(c=>{
+    const nLics = ADB.licencas.filter(l=>l.email===c.email).length;
+    return `<tr>
+      <td><div style="font-size:0.88rem;font-weight:600;">${c.nome}</div></td>
+      <td>${c.empresa||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="font-size:0.82rem;">${c.email}</td>
+      <td>${planoBadge(c.plano)}</td>
+      <td><span class="badge badge-info">${nLics}</span></td>
+      <td style="font-size:0.78rem;color:var(--text-muted);">${formatDate(c.criado_em)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="criarLicForCliente('${c.email}','${c.empresa||c.nome}','${c.plano}')">🔑</button>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteCliente(${c.id})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">Sem clientes</td></tr>';
+}
+
+function saveCliente() {
+  const nome=document.getElementById('cliNome').value.trim(), email=document.getElementById('cliEmail').value.trim();
+  if(!nome||!email){toast('Nome e email obrigatórios','error');return;}
+  ADB.clientes.push({id:Date.now(),nome,empresa:document.getElementById('cliEmpresa').value,email,telefone:document.getElementById('cliTelefone').value,plano:document.getElementById('cliPlano').value,criado_em:new Date().toISOString()});
+  saveAdminStorage();closeModal('modalCliente');renderClientes();toast('Cliente criado','success');
+}
+
+function deleteCliente(id){if(!confirm('Eliminar cliente?'))return;ADB.clientes=ADB.clientes.filter(x=>x.id!==id);saveAdminStorage();renderClientes();toast('Cliente eliminado','success');}
+
+function criarLicForCliente(email,empresa,plano){
+  document.getElementById('licEmail').value=email;
+  document.getElementById('licEmpresa').value=empresa;
+  document.getElementById('licTipo').value=plano;
+  openModal('modalLicenca');
+}
+
+// === INSTÂNCIAS ===
+function renderInstancias() {
+  const items = ADB.licencas.filter(l=>l.ativo).map(l=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--dark);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:0.88rem;font-weight:700;">${l.empresa}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">${planoBadge(l.tipo)} · ${l.lojas} loja(s)</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:4px;">${l.chave}</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="badge badge-success">● Online</span>
+        <div style="font-size:0.73rem;color:var(--text-muted);margin-top:4px;">Expira: ${formatDate(l.expira_em)}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('instanciasList').innerHTML = items||'<div style="text-align:center;padding:20px;color:var(--text-muted);">Sem instâncias ativas</div>';
+}
+
+// === LOGS ===
+function renderLogs() {
+  const colors = { info:'color:#93c5fd', success:'color:#34d399', warning:'color:#fbbf24', error:'color:#f87171' };
+  document.getElementById('logsContainer').innerHTML = [...ADB.logs].reverse().map(l=>`
+    <div style="${colors[l.level]||'color:var(--text-muted)'}">
+      <span style="color:var(--text-muted);">[${formatDate(l.ts)}]</span> [${l.level.toUpperCase()}] ${l.msg}
+    </div>
+  `).join('') || '<div style="color:var(--text-muted);padding:10px;">Sem logs</div>';
+}
+
+function clearLogs() { ADB.logs=[]; saveAdminStorage(); renderLogs(); toast('Logs limpos','info'); }
+
+function addLog(level, msg) {
+  ADB.logs.push({level, msg, ts:new Date().toISOString()});
+  if(ADB.logs.length>500) ADB.logs=ADB.logs.slice(-500);
+  saveAdminStorage();
+}
+
+// === CONFIG ===
+function renderConfig() {
+  document.getElementById('cfApiUrl').value = localStorage.getItem('admin_api_url') || '';
+  document.getElementById('cfAdminSecret').value = localStorage.getItem('admin_secret') || '';
+}
+function saveAdminConfig() {
+  localStorage.setItem('admin_api_url', document.getElementById('cfApiUrl').value.trim());
+  localStorage.setItem('admin_secret', document.getElementById('cfAdminSecret').value.trim());
+  toast('Configurações guardadas','success');
+}
+function changeAdminPass() {
+  const u=document.getElementById('newAdminUser').value, p=document.getElementById('newAdminPass').value;
+  if(!u||!p){toast('Preencha os campos','error');return;}
+  localStorage.setItem('admin_user',u); localStorage.setItem('admin_pass',p);
+  toast('Credenciais atualizadas','success');
+}
+
+// === LANDINGS CMS ===
+const CMS_DEFAULTS = {
+  checklists: { badge:'Plataforma Operacional', title:'Gestão Operacional para Equipas', subtitle:'Centraliza todas as checklists da tua operação. Controla abertura, fecho e auditorias com alertas automáticos.', hero_image:'', features:['Checklists de abertura, recorrentes e fecho','Alertas automáticos quando prazo é ultrapassado','Captura de fotos e vídeos directamente na app','Gestão de colaboradores com PIN por operador'], plans:[{name:'Starter',price:19,period:'ano',desc:'1 loja'},{name:'Business',price:49,period:'ano',desc:'10 lojas'},{name:'Enterprise',price:99,period:'ano',desc:'Ilimitadas'}], faq:[{q:'Funciona sem instalar?',a:'Sim, 100% web.'},{q:'A chave expira?',a:'Planos anuais renovam uma vez por ano. Existe opção Lifetime.'}], cta_text:'Começar agora', cta_url:'checkout.html?app=checklists&plan=annual', active:true },
+  faturalite: { badge:'Faturação Inteligente', title:'Faturação Simples e Rápida', subtitle:'Emite e gere faturas com OCR automático, QR Code e backup seguro.', hero_image:'', features:['Leitura automática por OCR','QR Code em cada fatura','Cálculo automático de IVA','Backup exportável em JSON'], plans:[{name:'Standard',price:0,period:'ano',desc:'A definir'}], faq:[], cta_text:'Começar agora', cta_url:'checkout.html?app=faturalite&plan=annual', active:true },
+  trading: { badge:'Trading Automatizado', title:'Robô de Trading 24/7', subtitle:'SafeTrade opera por ti com estratégia Rebuy-Target e monitorização contínua.', hero_image:'', features:['Estratégia Rebuy-Target automatizada','Cron Worker 24h/dia','RSI e MACD','Modo Paper Trading'], plans:[{name:'Pro',price:0,period:'ano',desc:'A definir'}], faq:[], cta_text:'Começar agora', cta_url:'checkout.html?app=trading&plan=annual', active:true },
+  hub: { badge:'Suite de Apps', title:'Todas as ferramentas que o teu negócio precisa', subtitle:'Gestão operacional, faturação inteligente e trading automatizado.', hero_image:'', features:[], plans:[], faq:[], cta_text:'Ver Planos', cta_url:'#precos', active:true }
+};
+
+let cmsCurrentConfig = {};
+
+function renderLandings() {
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const status$ = document.getElementById('cmsApiStatus');
+  if (!apiUrl) { status$.textContent = 'Worker não configurado — configure em Config'; status$.style.color='var(--warning)'; renderLandingsGrid(null); return; }
+  status$.textContent = 'A carregar...'; status$.style.color='var(--text-muted)';
+  fetch(apiUrl + '/api/cms/landings')
+    .then(r => r.json())
+    .then(d => { status$.textContent = 'Ligado ao KV'; status$.style.color='var(--success)'; renderLandingsGrid(d.data || []); })
+    .catch(() => { status$.textContent = 'Erro ao ligar ao Worker'; status$.style.color='var(--danger)'; renderLandingsGrid(null); });
+}
+
+function renderLandingsGrid(data) {
+  const apps = ['checklists','faturalite','trading','hub'];
+  const labels = { checklists:'☑ CHECKLISTS', faturalite:'🧾 FATURALITE', trading:'📈 TRADING', hub:'⚡ Hub Principal' };
+  const grid = document.getElementById('landingsGrid');
+  grid.innerHTML = apps.map(app => {
+    const info = data ? (data.find(x => x.app === app) || {}) : {};
+    const active = info.active !== false;
+    const updated = info.updated_at ? new Date(info.updated_at).toLocaleDateString('pt-PT') : 'Por defeito';
+    return `<div style="background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:0.9rem;font-weight:700;">${labels[app]}</div>
+        <span style="padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:${active?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)'};color:${active?'#34d399':'#f87171'}">${active?'Activa':'Inactiva'}</span>
+      </div>
+      <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:12px;">Actualizado: ${updated}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="editLanding('${app}')">✏️ Editar</button>
+        <button class="btn btn-${active?'danger':'success'} btn-sm" onclick="toggleLanding('${app}',${!active})">${active?'Desactivar':'Activar'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editLanding(app) {
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  document.getElementById('editingApp').value = app;
+  const labels = { checklists:'☑ CHECKLISTS', faturalite:'🧾 FATURALITE', trading:'📈 TRADING', hub:'⚡ Hub Principal' };
+  document.getElementById('editorTitle').textContent = 'Editar — ' + labels[app];
+  document.getElementById('landingEditor').style.display = 'block';
+  document.getElementById('landingEditor').scrollIntoView({ behavior:'smooth' });
+
+  const applyConfig = cfg => {
+    cmsCurrentConfig = JSON.parse(JSON.stringify(cfg));
+    document.getElementById('editActive').checked = cfg.active !== false;
+    document.getElementById('activeLabel').textContent = cfg.active !== false ? 'Activa' : 'Inactiva';
+    document.getElementById('editBadge').value = cfg.badge || '';
+    document.getElementById('editTitle').value = cfg.title || '';
+    document.getElementById('editSubtitle').value = cfg.subtitle || '';
+    document.getElementById('editHeroImage').value = cfg.hero_image || '';
+    document.getElementById('editCtaText').value = cfg.cta_text || '';
+    document.getElementById('editCtaUrl').value = cfg.cta_url || '';
+    renderFeaturesList(cfg.features || []);
+    renderPlansList(cfg.plans || []);
+    renderFaqList(cfg.faq || []);
+  };
+
+  if (apiUrl) {
+    fetch(apiUrl + '/api/cms/landing/' + app)
+      .then(r => r.json())
+      .then(d => applyConfig(d.data || CMS_DEFAULTS[app] || {}))
+      .catch(() => applyConfig(CMS_DEFAULTS[app] || {}));
+  } else {
+    applyConfig(CMS_DEFAULTS[app] || {});
+  }
+}
+
+function renderFeaturesList(features) {
+  document.getElementById('featuresList').innerHTML = features.map((f,i) => `
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="text" class="form-control" value="${f}" oninput="cmsCurrentConfig.features[${i}]=this.value" style="font-size:0.83rem;padding:7px 10px;">
+      <button class="btn btn-danger btn-icon btn-sm" onclick="removeFeature(${i})">✕</button>
+    </div>`).join('');
+}
+function addFeature() { cmsCurrentConfig.features = cmsCurrentConfig.features || []; cmsCurrentConfig.features.push(''); renderFeaturesList(cmsCurrentConfig.features); }
+function removeFeature(i) { cmsCurrentConfig.features.splice(i,1); renderFeaturesList(cmsCurrentConfig.features); }
+
+function renderPlansList(plans) {
+  document.getElementById('plansList').innerHTML = plans.map((p,i) => `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div class="form-row" style="margin-bottom:6px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-control" value="${p.name||''}" oninput="cmsCurrentConfig.plans[${i}].name=this.value" style="font-size:0.82rem;padding:6px 10px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Preço (€)</label>
+          <input type="number" class="form-control" value="${p.price||0}" oninput="cmsCurrentConfig.plans[${i}].price=parseFloat(this.value)" style="font-size:0.82rem;padding:6px 10px;">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Descrição curta (ex: "1 loja")</label>
+        <input type="text" class="form-control" value="${p.desc||''}" oninput="cmsCurrentConfig.plans[${i}].desc=this.value" style="font-size:0.82rem;padding:6px 10px;">
+      </div>
+    </div>`).join('');
+}
+
+function renderFaqList(faq) {
+  document.getElementById('faqList').innerHTML = faq.map((f,i) => `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;gap:8px;align-items:flex-start;">
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+        <input type="text" class="form-control" placeholder="Pergunta" value="${f.q||''}" oninput="cmsCurrentConfig.faq[${i}].q=this.value" style="font-size:0.82rem;padding:6px 10px;">
+        <textarea class="form-control" placeholder="Resposta" oninput="cmsCurrentConfig.faq[${i}].a=this.value" rows="2" style="font-size:0.82rem;padding:6px 10px;">${f.a||''}</textarea>
+      </div>
+      <button class="btn btn-danger btn-icon btn-sm" onclick="removeFaq(${i})">✕</button>
+    </div>`).join('');
+}
+function addFaq() { cmsCurrentConfig.faq = cmsCurrentConfig.faq || []; cmsCurrentConfig.faq.push({q:'',a:''}); renderFaqList(cmsCurrentConfig.faq); }
+function removeFaq(i) { cmsCurrentConfig.faq.splice(i,1); renderFaqList(cmsCurrentConfig.faq); }
+
+function cancelEditLanding() { document.getElementById('landingEditor').style.display='none'; }
+
+async function saveLanding() {
+  const app = document.getElementById('editingApp').value;
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const adminSecret = localStorage.getItem('admin_secret') || '';
+  if (!apiUrl) { toast('Configure o Worker URL em Config primeiro','error'); return; }
+  if (!adminSecret) { toast('Configure o Admin Secret em Config primeiro','error'); return; }
+
+  // Commit form values
+  cmsCurrentConfig.active   = document.getElementById('editActive').checked;
+  cmsCurrentConfig.badge    = document.getElementById('editBadge').value;
+  cmsCurrentConfig.title    = document.getElementById('editTitle').value;
+  cmsCurrentConfig.subtitle = document.getElementById('editSubtitle').value;
+  cmsCurrentConfig.hero_image = document.getElementById('editHeroImage').value;
+  cmsCurrentConfig.cta_text = document.getElementById('editCtaText').value;
+  cmsCurrentConfig.cta_url  = document.getElementById('editCtaUrl').value;
+
+  try {
+    const r = await fetch(apiUrl + '/api/cms/landing/' + app, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Admin-Secret': adminSecret },
+      body: JSON.stringify(cmsCurrentConfig)
+    });
+    const d = await r.json();
+    if (d.success) { toast('Landing guardada no KV com sucesso!','success'); cancelEditLanding(); renderLandings(); }
+    else { toast('Erro: ' + (d.error||'desconhecido'),'error'); }
+  } catch(e) { toast('Erro de ligação ao Worker','error'); }
+}
+
+async function toggleLanding(app, newActive) {
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const adminSecret = localStorage.getItem('admin_secret') || '';
+  if (!apiUrl || !adminSecret) { toast('Configure Worker URL e Admin Secret em Config','error'); return; }
+  let cfg = {};
+  try { const r = await fetch(apiUrl+'/api/cms/landing/'+app); const d = await r.json(); cfg = d.data || CMS_DEFAULTS[app] || {}; } catch(e) { cfg = CMS_DEFAULTS[app] || {}; }
+  cfg.active = newActive;
+  try {
+    const r = await fetch(apiUrl+'/api/cms/landing/'+app, { method:'PUT', headers:{'Content-Type':'application/json','Admin-Secret':adminSecret}, body:JSON.stringify(cfg) });
+    const d = await r.json();
+    if (d.success) { toast('Estado alterado: landing '+(newActive?'activada':'desactivada'),'success'); renderLandings(); }
+    else toast('Erro: '+(d.error||''),'error');
+  } catch(e) { toast('Erro de ligação','error'); }
+}
+
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// === HELPERS ===
+function planoBadge(tipo) {
+  const map={starter:'<span class="badge badge-neutral">Starter</span>',business:'<span class="badge badge-info">Business</span>',enterprise:'<span class="badge badge-warning">Enterprise</span>',demo:'<span class="badge badge-neutral">Demo</span>'};
+  return map[tipo?.toLowerCase()]||tipo||'';
+}
+function estadoPagBadge(e) {
+  if(e==='confirmado') return '<span class="badge badge-success">Confirmado</span>';
+  if(e==='pendente') return '<span class="badge badge-warning">Pendente</span>';
+  return '<span class="badge badge-danger">Cancelado</span>';
+}
+function formatDate(iso) {
+  if(!iso) return '-';
+  return new Date(iso).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function toast(msg, type='info') {
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;
+  t.innerHTML=({success:'✅',error:'❌',info:'ℹ️'}[type]||'ℹ️')+' '+msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3000);
+}
+function setupAdminClock() {
+  const u=()=>document.getElementById('adminClock').textContent=new Date().toLocaleTimeString('pt-PT');
+  u(); setInterval(u,1000);
+}
+</script>
+</body>
+</html>
