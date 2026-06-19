@@ -151,6 +151,8 @@
         <button class="nav-item" onclick="navigate('licencas',this)">🔑 Licenças</button>
         <button class="nav-item" onclick="navigate('pagamentos',this)">💳 Pagamentos</button>
         <button class="nav-item" onclick="navigate('clientes',this)">🏢 Clientes</button>
+        <button class="nav-item" onclick="showSection('credenciais',this)">🔑 Credenciais</button>
+        <button class="nav-item" onclick="showSection('atribuicoes',this)">📋 Atribuições</button>
         <div class="nav-section">Conteúdo</div>
         <button class="nav-item" onclick="navigate('landings',this)">🖼️ Landings</button>
         <div class="nav-section">Sistema</div>
@@ -252,6 +254,47 @@
               <table>
                 <thead><tr><th>Nome</th><th>Empresa</th><th>Email</th><th>Plano</th><th>Licenças</th><th>Desde</th><th>Ações</th></tr></thead>
                 <tbody id="clientesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CREDENCIAIS -->
+        <div class="page" id="page-credenciais">
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">🔑 Credenciais de Acesso — Portal Operador</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Define username e password para cada colaborador aceder ao portal do operador.</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="loadCredenciais()">↻ Actualizar</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>Cargo</th><th>Username actual</th><th>Ações</th></tr></thead>
+                <tbody id="credenciaisBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATRIBUIÇÕES -->
+        <div class="page" id="page-atribuicoes">
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">📋 Atribuições de Checklists</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Liga modelos a colaboradores, períodos operacionais e horas limite.</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="loadAtribuicoes()">↻ Actualizar</button>
+                <button class="btn btn-primary" onclick="openAtribuicaoModal()">+ Nova Atribuição</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Modelo</th><th>Colaborador</th><th>Período</th><th>Hora Limite</th><th>Dias</th><th>Estado</th><th>Acções</th></tr></thead>
+                <tbody id="atribuicoesBody"></tbody>
               </table>
             </div>
           </div>
@@ -544,6 +587,89 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalCredencial">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="credModalTitle">Editar credenciais</div>
+      <button class="modal-close" onclick="closeModal('modalCredencial')">✕</button>
+    </div>
+    <input type="hidden" id="credColabId">
+    <div class="form-group">
+      <label class="form-label">Colaborador</label>
+      <input type="text" class="form-control" id="credColabNome" disabled>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-control" id="credUsername" placeholder="ex: joao.silva">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nova Password</label>
+      <input type="password" class="form-control" id="credPassword" placeholder="Vazio mantém a password actual">
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:5px;">Obrigatória ao criar credenciais pela primeira vez; opcional ao editar.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px;">
+      <input type="checkbox" id="credForceChange" style="width:18px;height:18px;accent-color:var(--primary);">
+      <span style="font-size:0.85rem;">Forçar troca na próxima entrada</span>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalCredencial')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCredencial()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAtribuicao">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="atrModalTitle">Nova Atribuição</div>
+      <button class="modal-close" onclick="closeModal('modalAtribuicao')">✕</button>
+    </div>
+    <input type="hidden" id="atrEditId">
+    <div class="form-group">
+      <label class="form-label">Modelo</label>
+      <select class="form-control" id="atrModelo"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Colaborador</label>
+      <select class="form-control" id="atrColaborador"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Período</label>
+        <select class="form-control" id="atrPeriodo">
+          <option value="abertura">Abertura</option>
+          <option value="recorrente">Recorrente</option>
+          <option value="fecho">Fecho</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora Limite</label>
+        <input type="time" class="form-control" id="atrHoraLimite">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dias da Semana</label>
+      <div id="atrDias" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:0.82rem;">
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="1" style="accent-color:var(--primary);"> Seg</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="2" style="accent-color:var(--primary);"> Ter</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="3" style="accent-color:var(--primary);"> Qua</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="4" style="accent-color:var(--primary);"> Qui</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="5" style="accent-color:var(--primary);"> Sex</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="6" style="accent-color:var(--primary);"> Sáb</label>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="7" style="accent-color:var(--primary);"> Dom</label>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px;">
+      <input type="checkbox" id="atrActiva" checked style="width:18px;height:18px;accent-color:var(--primary);">
+      <span style="font-size:0.85rem;">Activa</span>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalAtribuicao')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAtribuicao()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
@@ -627,13 +753,15 @@ function navigate(page, el) {
   document.getElementById('page-'+page).classList.add('active');
   if(el) el.classList.add('active');
   currentPage = page;
-  const titles = { dashboard:'Dashboard Admin', licencas:'Licenças', pagamentos:'Pagamentos', clientes:'Clientes', instancias:'Instâncias', logs:'Logs', config:'Configurações' };
+  const titles = { dashboard:'Dashboard Admin', licencas:'Licenças', pagamentos:'Pagamentos', clientes:'Clientes', credenciais:'Credenciais', atribuicoes:'Atribuições', landings:'Landings', instancias:'Instâncias', logs:'Logs', config:'Configurações' };
   document.getElementById('pageTitle').textContent = titles[page]||page;
   refreshPage();
 }
 
+function showSection(page, el) { navigate(page, el); }
+
 function refreshPage() {
-  const fns = { dashboard:renderDashboard, licencas:renderLicencas, pagamentos:renderPagamentos, clientes:renderClientes, instancias:renderInstancias, logs:renderLogs, config:renderConfig };
+  const fns = { dashboard:renderDashboard, licencas:renderLicencas, pagamentos:renderPagamentos, clientes:renderClientes, credenciais:loadCredenciais, atribuicoes:loadAtribuicoes, instancias:renderInstancias, logs:renderLogs, config:renderConfig, landings:renderLandings };
   if(fns[currentPage]) fns[currentPage]();
 }
 
@@ -843,6 +971,209 @@ function criarLicForCliente(email,empresa,plano){
   document.getElementById('licTipo').value=plano;
   openModal('modalLicenca');
 }
+
+// === CREDENCIAIS OPERADOR ===
+let colaboradoresCache = [];
+let modelosCache = [];
+let atribuicoesCache = [];
+
+function adminApiBase() {
+  return (localStorage.getItem('admin_api_url') || 'https://checklists-api.jorgepronto20.workers.dev').replace(/\/$/, '');
+}
+
+function adminHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Admin-Secret': localStorage.getItem('admin_secret') || ''
+  };
+}
+
+async function apiRequest(path, options={}) {
+  const headers = Object.assign({}, adminHeaders(), options.headers || {});
+  const res = await fetch(adminApiBase() + path, Object.assign({}, options, { headers }));
+  let data = null;
+  try { data = await res.json(); } catch(e) { data = null; }
+  if (!res.ok || (data && data.success === false)) throw new Error((data && data.error) || ('Erro HTTP ' + res.status));
+  return data;
+}
+
+function extractList(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.colaboradores)) return payload.colaboradores;
+  if (Array.isArray(payload?.modelos)) return payload.modelos;
+  if (Array.isArray(payload?.atribuicoes)) return payload.atribuicoes;
+  return [];
+}
+
+function htmlEscape(v) {
+  return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+
+async function loadColaboradores() {
+  const data = await apiRequest('/api/colaboradores');
+  colaboradoresCache = extractList(data);
+  return colaboradoresCache;
+}
+
+async function loadModelos() {
+  const data = await apiRequest('/api/modelos');
+  modelosCache = extractList(data);
+  return modelosCache;
+}
+
+async function loadCredenciais() {
+  const body = document.getElementById('credenciaisBody');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">A carregar colaboradores...</td></tr>';
+  try {
+    const list = await loadColaboradores();
+    body.innerHTML = list.length ? list.map(c => `
+      <tr>
+        <td><div style="font-size:0.85rem;font-weight:600;">${htmlEscape(c.nome || c.name || '-')}</div><div style="font-size:0.73rem;color:var(--text-muted);">ID #${htmlEscape(c.id)}</div></td>
+        <td>${htmlEscape(c.cargo || c.funcao || '-')}</td>
+        <td>${c.username ? `<span class="badge badge-info">${htmlEscape(c.username)}</span>` : '<span class="badge badge-neutral">Sem username</span>'}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="openCredencialModal(${Number(c.id)})">Editar credenciais</button></td>
+      </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Sem colaboradores</td></tr>';
+  } catch(e) {
+    body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar colaboradores: ${htmlEscape(e.message)}</td></tr>`;
+    toast('Erro ao carregar colaboradores','error');
+  }
+}
+
+function openCredencialModal(id) {
+  const c = colaboradoresCache.find(x => Number(x.id) === Number(id));
+  if (!c) { toast('Colaborador não encontrado','error'); return; }
+  const creating = !c.username;
+  document.getElementById('credColabId').value = c.id;
+  document.getElementById('credColabNome').value = c.nome || c.name || '';
+  document.getElementById('credUsername').value = c.username || '';
+  document.getElementById('credPassword').value = '';
+  document.getElementById('credForceChange').checked = creating ? true : !!c.force_password_change;
+  document.getElementById('credModalTitle').textContent = creating ? 'Criar credenciais' : 'Editar credenciais';
+  openModal('modalCredencial');
+}
+
+async function saveCredencial() {
+  const id = document.getElementById('credColabId').value;
+  const c = colaboradoresCache.find(x => String(x.id) === String(id));
+  if (!c) { toast('Colaborador não encontrado','error'); return; }
+  const username = document.getElementById('credUsername').value.trim();
+  const password = document.getElementById('credPassword').value;
+  const force = document.getElementById('credForceChange').checked;
+  if (!username) { toast('Username obrigatório','error'); return; }
+  if (!c.username && !password) { toast('Password obrigatória ao criar credenciais','error'); return; }
+  const payload = Object.assign({}, c, { username, force_password_change: force ? 1 : 0 });
+  if (password) payload.password = password;
+  try {
+    await apiRequest('/api/colaboradores/' + encodeURIComponent(id), { method:'PUT', body:JSON.stringify(payload) });
+    closeModal('modalCredencial');
+    toast('Credenciais guardadas','success');
+    addLog('success','Credenciais actualizadas para colaborador #' + id);
+    await loadCredenciais();
+  } catch(e) { toast('Erro ao guardar credenciais: ' + e.message,'error'); }
+}
+
+// === ATRIBUIÇÕES ===
+function modeloNome(id) {
+  const m = modelosCache.find(x => String(x.id) === String(id) || String(x.modelo_id) === String(id));
+  return m ? (m.nome || m.titulo || m.name || ('Modelo #' + id)) : ('Modelo #' + (id || '-'));
+}
+
+function colaboradorNome(id) {
+  if (!id || String(id) === '0' || String(id).toLowerCase() === 'null') return 'Todos';
+  const c = colaboradoresCache.find(x => String(x.id) === String(id));
+  return c ? (c.nome || c.name || ('Colaborador #' + id)) : ('Colaborador #' + id);
+}
+
+function diasLabel(dias) {
+  const map = {1:'Seg',2:'Ter',3:'Qua',4:'Qui',5:'Sex',6:'Sáb',7:'Dom'};
+  let arr = Array.isArray(dias) ? dias : String(dias || '').split(',').map(x=>x.trim()).filter(Boolean);
+  return arr.length ? arr.map(d=>map[d] || d).join(', ') : '-';
+}
+
+async function loadAtribuicoes() {
+  const body = document.getElementById('atribuicoesBody');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">A carregar atribuições...</td></tr>';
+  try {
+    await Promise.all([loadModelos(), loadColaboradores()]);
+    const data = await apiRequest('/api/atribuicoes');
+    atribuicoesCache = extractList(data);
+    body.innerHTML = atribuicoesCache.length ? atribuicoesCache.map(a => `
+      <tr>
+        <td>${htmlEscape(a.modelo_nome || modeloNome(a.modelo_id || a.modeloId))}</td>
+        <td>${htmlEscape(a.colaborador_nome || colaboradorNome(a.colaborador_id || a.colaboradorId))}</td>
+        <td><span class="badge badge-info">${htmlEscape(capitalize(a.periodo || '-'))}</span></td>
+        <td>${htmlEscape(a.hora_limite || a.horaLimite || '-')}</td>
+        <td>${htmlEscape(diasLabel(a.dias_semana || a.dias || a.diasSemana))}</td>
+        <td>${(a.activa ?? a.ativa ?? a.ativo ?? 1) ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-neutral">Inactiva</span>'}</td>
+        <td><div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openAtribuicaoModal(${Number(a.id)})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAtribuicao(${Number(a.id)})">Eliminar</button>
+        </div></td>
+      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">Sem atribuições</td></tr>';
+  } catch(e) {
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar atribuições: ${htmlEscape(e.message)}</td></tr>`;
+    toast('Erro ao carregar atribuições','error');
+  }
+}
+
+async function openAtribuicaoModal(id=null) {
+  try {
+    if (!modelosCache.length || !colaboradoresCache.length) await Promise.all([loadModelos(), loadColaboradores()]);
+  } catch(e) { toast('Erro ao carregar listas para o formulário','error'); return; }
+  const isEdit = id !== null && id !== undefined;
+  const a = isEdit ? atribuicoesCache.find(x => Number(x.id) === Number(id)) : null;
+  document.getElementById('atrModalTitle').textContent = isEdit ? 'Editar Atribuição' : 'Nova Atribuição';
+  document.getElementById('atrEditId').value = isEdit ? id : '';
+  document.getElementById('atrModelo').innerHTML = modelosCache.map(m => `<option value="${htmlEscape(m.id || m.modelo_id)}">${htmlEscape(m.nome || m.titulo || m.name || ('Modelo #' + (m.id || m.modelo_id)))}</option>`).join('');
+  document.getElementById('atrColaborador').innerHTML = '<option value="">Todos os colaboradores</option>' + colaboradoresCache.map(c => `<option value="${htmlEscape(c.id)}">${htmlEscape(c.nome || c.name || ('Colaborador #' + c.id))}</option>`).join('');
+  document.getElementById('atrModelo').value = a ? (a.modelo_id || a.modeloId || '') : (modelosCache[0]?.id || modelosCache[0]?.modelo_id || '');
+  document.getElementById('atrColaborador').value = a ? (a.colaborador_id || a.colaboradorId || '') : '';
+  document.getElementById('atrPeriodo').value = a ? (a.periodo || 'abertura') : 'abertura';
+  document.getElementById('atrHoraLimite').value = a ? (a.hora_limite || a.horaLimite || '') : '';
+  const dias = Array.isArray(a?.dias_semana || a?.dias || a?.diasSemana) ? (a.dias_semana || a.dias || a.diasSemana).map(String) : String(a?.dias_semana || a?.dias || a?.diasSemana || '1,2,3,4,5').split(',').map(x=>x.trim());
+  document.querySelectorAll('#atrDias input[type="checkbox"]').forEach(cb => cb.checked = dias.includes(cb.value));
+  document.getElementById('atrActiva').checked = a ? !!(a.activa ?? a.ativa ?? a.ativo ?? 1) : true;
+  openModal('modalAtribuicao');
+}
+
+async function saveAtribuicao() {
+  const id = document.getElementById('atrEditId').value;
+  const dias = [...document.querySelectorAll('#atrDias input[type="checkbox"]:checked')].map(cb => Number(cb.value));
+  if (!document.getElementById('atrModelo').value) { toast('Seleccione um modelo','error'); return; }
+  if (!document.getElementById('atrHoraLimite').value) { toast('Hora limite obrigatória','error'); return; }
+  if (!dias.length) { toast('Seleccione pelo menos um dia','error'); return; }
+  const payload = {
+    modelo_id: document.getElementById('atrModelo').value,
+    colaborador_id: document.getElementById('atrColaborador').value || null,
+    periodo: document.getElementById('atrPeriodo').value,
+    hora_limite: document.getElementById('atrHoraLimite').value,
+    dias_semana: dias,
+    activa: document.getElementById('atrActiva').checked ? 1 : 0
+  };
+  try {
+    await apiRequest(id ? '/api/atribuicoes/' + encodeURIComponent(id) : '/api/atribuicoes', { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
+    closeModal('modalAtribuicao');
+    toast(id ? 'Atribuição actualizada' : 'Atribuição criada','success');
+    addLog('success', id ? 'Atribuição actualizada #' + id : 'Nova atribuição criada');
+    await loadAtribuicoes();
+  } catch(e) { toast('Erro ao guardar atribuição: ' + e.message,'error'); }
+}
+
+async function deleteAtribuicao(id) {
+  if (!confirm('Eliminar esta atribuição?')) return;
+  try {
+    await apiRequest('/api/atribuicoes/' + encodeURIComponent(id), { method:'DELETE' });
+    toast('Atribuição eliminada','success');
+    addLog('warning','Atribuição eliminada #' + id);
+    await loadAtribuicoes();
+  } catch(e) { toast('Erro ao eliminar atribuição: ' + e.message,'error'); }
+}
+
+function capitalize(v) { v = String(v || ''); return v ? v.charAt(0).toUpperCase() + v.slice(1) : v; }
 
 // === INSTÂNCIAS ===
 function renderInstancias() {
