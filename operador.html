@@ -1,0 +1,1334 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CHECKLISTS Operador</title>
+  <meta name="description" content="Portal de operadores para execução diária de checklists operacionais." />
+  <style>
+    :root {
+      --dark: #0a0f1e;
+      --dark-2: #101828;
+      --dark-3: #172033;
+      --card: rgba(15, 23, 42, 0.88);
+      --card-2: rgba(30, 41, 59, 0.82);
+      --line: rgba(148, 163, 184, 0.18);
+      --line-strong: rgba(148, 163, 184, 0.32);
+      --text: #e5eefb;
+      --muted: #94a3b8;
+      --muted-2: #64748b;
+      --primary: #2563eb;
+      --primary-2: #1d4ed8;
+      --secondary: #0ea5e9;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.13);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.13);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.13);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(37, 99, 235, 0.28), transparent 34%),
+        radial-gradient(circle at 85% 18%, rgba(14, 165, 233, 0.18), transparent 30%),
+        radial-gradient(circle at 50% 115%, rgba(16, 185, 129, 0.11), transparent 35%),
+        var(--dark);
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.58; }
+
+    a { color: inherit; }
+
+    .hidden { display: none !important; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* @section: login-screen */
+    .auth-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    .auth-wrap::before,
+    .auth-wrap::after {
+      content: "";
+      position: fixed;
+      width: 360px;
+      height: 360px;
+      border-radius: 999px;
+      filter: blur(20px);
+      pointer-events: none;
+      opacity: 0.24;
+    }
+
+    .auth-wrap::before {
+      left: -110px;
+      top: -120px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .auth-wrap::after {
+      right: -130px;
+      bottom: -120px;
+      background: linear-gradient(135deg, var(--success), var(--secondary));
+    }
+
+    .auth-card {
+      width: min(100%, 460px);
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.78));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .logo-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.34);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 1.02rem;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    .auth-card h1 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      line-height: 1.05;
+      margin-bottom: 10px;
+      letter-spacing: -0.055em;
+    }
+
+    .auth-card .lead {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 26px;
+    }
+
+    .form-stack { display: grid; gap: 16px; }
+
+    .field label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .input,
+    textarea.input {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 15px;
+      background: rgba(2, 6, 23, 0.5);
+      color: var(--text);
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    textarea.input { min-height: 104px; resize: vertical; }
+
+    .input:focus,
+    textarea.input:focus {
+      border-color: rgba(14, 165, 233, 0.82);
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+      background: rgba(2, 6, 23, 0.72);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 15px;
+      padding: 13px 16px;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
+      transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 9px;
+      min-height: 46px;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+      box-shadow: 0 18px 34px rgba(37, 99, 235, 0.34);
+    }
+
+    .btn.full { width: 100%; }
+
+    .btn.secondary {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--line-strong);
+      color: #dbeafe;
+      box-shadow: none;
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow: 0 14px 28px rgba(239, 68, 68, 0.2);
+    }
+
+    .hint {
+      color: var(--muted-2);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin: 10px 0 0;
+    }
+
+    /* @section: app-header */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px clamp(18px, 4vw, 46px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(10, 15, 30, 0.82);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar .brand-mark { margin-bottom: 0; }
+    .topbar .logo-dot { width: 40px; height: 40px; border-radius: 14px; }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .user-meta {
+      text-align: right;
+      min-width: 0;
+    }
+
+    .user-meta strong,
+    .user-meta span {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .user-meta strong { font-size: 0.95rem; }
+    .user-meta span { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+
+    main.dashboard {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0 56px;
+    }
+
+    /* @section: dashboard-hero */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid rgba(14, 165, 233, 0.24);
+      border-radius: 999px;
+      color: #bae6fd;
+      background: rgba(14, 165, 233, 0.08);
+      font-size: 0.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin-bottom: 8px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1;
+      letter-spacing: -0.065em;
+    }
+
+    .hero p { color: var(--muted); line-height: 1.55; margin-bottom: 0; }
+
+    .refresh-card {
+      min-width: 250px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    .refresh-card span { display: block; color: var(--muted); font-size: 0.78rem; }
+    .refresh-card strong { display: block; margin-top: 4px; font-size: 1rem; }
+
+    /* @section: tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(15, 23, 42, 0.62);
+      margin: 24px 0;
+    }
+
+    .tab-btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 13px 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .tab-btn:hover { background: rgba(148, 163, 184, 0.08); color: #dbeafe; }
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(14, 165, 233, 0.78));
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+    }
+
+    /* @section: checklist-cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .check-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.86));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .check-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      opacity: 0.9;
+    }
+
+    .check-card.done::before { background: linear-gradient(90deg, var(--success), #34d399); }
+    .check-card.late::before { background: linear-gradient(90deg, var(--danger), #fb7185); }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+    .card-title {
+      margin-bottom: 9px;
+      font-size: 1.16rem;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(2, 6, 23, 0.28);
+    }
+
+    .badge {
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.78rem;
+      font-weight: 900;
+      border: 1px solid transparent;
+    }
+
+    .badge.done { color: #bbf7d0; background: var(--success-bg); border-color: rgba(16, 185, 129, 0.28); }
+    .badge.pending { color: #fde68a; background: var(--warning-bg); border-color: rgba(245, 158, 11, 0.28); }
+    .badge.late { color: #fecaca; background: var(--danger-bg); border-color: rgba(239, 68, 68, 0.28); }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      padding: 38px 24px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.44);
+      color: var(--muted);
+    }
+
+    .empty-state strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.12rem;
+    }
+
+    /* @section: modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.76);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal {
+      width: min(760px, 100%);
+      max-height: min(88vh, 880px);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line-strong);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(10, 15, 30, 0.96));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal-head,
+    .modal-foot {
+      padding: 20px 22px;
+      border-color: var(--line);
+      flex: 0 0 auto;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-head h2 { margin-bottom: 5px; letter-spacing: -0.04em; }
+    .modal-head p { margin-bottom: 0; color: var(--muted); }
+
+    .modal-body {
+      padding: 22px;
+      overflow: auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.24);
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.72);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .question-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.62);
+    }
+
+    .question-card .q-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #dbeafe;
+      font-weight: 850;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+
+    .q-type {
+      color: var(--muted-2);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .choice-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+    .choice-btn {
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(2, 6, 23, 0.32);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .choice-btn.active.yes {
+      border-color: rgba(16, 185, 129, 0.58);
+      background: rgba(16, 185, 129, 0.18);
+      color: #bbf7d0;
+    }
+
+    .choice-btn.active.no {
+      border-color: rgba(239, 68, 68, 0.58);
+      background: rgba(239, 68, 68, 0.16);
+      color: #fecaca;
+    }
+
+    .file-box {
+      border: 1px dashed var(--line-strong);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(2, 6, 23, 0.26);
+    }
+
+    .file-box input { width: 100%; color: var(--muted); }
+    .preview-img {
+      display: none;
+      max-width: 100%;
+      max-height: 220px;
+      margin-top: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      object-fit: contain;
+    }
+
+    /* @section: loading-toast */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: grid;
+      place-items: center;
+      background: rgba(2, 6, 23, 0.42);
+      backdrop-filter: blur(4px);
+    }
+
+    .spinner-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: var(--shadow);
+      color: #dbeafe;
+      font-weight: 800;
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 3px solid rgba(148, 163, 184, 0.24);
+      border-top-color: var(--secondary);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast-zone {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 200;
+      display: grid;
+      gap: 10px;
+      width: min(390px, calc(100vw - 36px));
+    }
+
+    .toast {
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      padding: 13px 14px;
+      background: rgba(15, 23, 42, 0.96);
+      box-shadow: 0 18px 42px rgba(0,0,0,0.28);
+      color: var(--text);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      animation: toastIn 0.18s ease-out;
+    }
+
+    .toast.success { border-color: rgba(16, 185, 129, 0.38); }
+    .toast.error { border-color: rgba(239, 68, 68, 0.42); }
+    .toast .mark { font-weight: 900; }
+    .toast.success .mark { color: var(--success); }
+    .toast.error .mark { color: var(--danger); }
+    .toast p { margin: 0; color: #dbeafe; line-height: 1.45; }
+
+    @keyframes toastIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @media (max-width: 920px) {
+      .hero { grid-template-columns: 1fr; }
+      .refresh-card { min-width: 0; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .auth-card { padding: 24px; border-radius: 24px; }
+      .topbar { align-items: flex-start; }
+      .topbar .brand-text span { display: none; }
+      .user-area { flex-direction: column; align-items: flex-end; gap: 8px; }
+      .user-meta strong, .user-meta span { max-width: 140px; }
+      main.dashboard { width: min(100% - 22px, 1180px); padding-top: 22px; }
+      .tabs { grid-template-columns: 1fr; border-radius: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .modal-backdrop { padding: 10px; place-items: end center; }
+      .modal { max-height: 94vh; border-radius: 22px; }
+      .modal-head, .modal-body, .modal-foot { padding: 16px; }
+      .modal-foot { flex-direction: column-reverse; }
+      .modal-foot .btn { width: 100%; }
+      .choice-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- @section: app-root -->
+  <div id="loginScreen" class="auth-wrap">
+    <section class="auth-card" aria-labelledby="loginTitle">
+      <div class="brand-mark">
+        <div class="logo-dot">✓</div>
+        <div class="brand-text">
+          <strong>CHECKLISTS</strong>
+          <span>Portal Operador</span>
+        </div>
+      </div>
+      <h1 id="loginTitle">Entrar na operação</h1>
+      <p class="lead">Acede às checklists atribuídas para o teu turno, executa tarefas e submete evidências em tempo real.</p>
+      <form id="loginForm" class="form-stack" autocomplete="on">
+        <div class="field">
+          <label for="username">Utilizador</label>
+          <input id="username" class="input" name="username" type="text" autocomplete="username" required placeholder="ex: joao.silva" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" class="input" name="password" type="password" autocomplete="current-password" required placeholder="A tua password" />
+        </div>
+        <button class="btn full" type="submit">Entrar</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="passwordScreen" class="auth-wrap hidden">
+    <section class="auth-card" aria-labelledby="passwordTitle">
+      <div class="brand-mark">
+        <div class="logo-dot">🔐</div>
+        <div class="brand-text">
+          <strong>CHECKLISTS</strong>
+          <span>Primeiro acesso</span>
+        </div>
+      </div>
+      <h1 id="passwordTitle">Trocar password</h1>
+      <p class="lead">Por segurança, tens de definir uma nova password antes de continuar.</p>
+      <form id="passwordForm" class="form-stack" autocomplete="off">
+        <div class="field">
+          <label for="newPassword">Nova password</label>
+          <input id="newPassword" class="input" name="newPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="field">
+          <label for="confirmPassword">Confirmar</label>
+          <input id="confirmPassword" class="input" name="confirmPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Repete a nova password" />
+        </div>
+        <button class="btn full" type="submit">Confirmar e continuar</button>
+        <button id="cancelPasswordBtn" class="btn secondary full" type="button">Sair</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="appScreen" class="app-shell hidden">
+    <!-- @section: header -->
+    <header class="topbar">
+      <div class="brand-mark" aria-label="CHECKLISTS Operador">
+        <div class="logo-dot">✓</div>
+        <div class="brand-text">
+          <strong>CHECKLISTS Operador</strong>
+          <span>Execução diária de checklists</span>
+        </div>
+      </div>
+      <div class="user-area">
+        <div class="user-meta">
+          <strong id="operatorName">Operador</strong>
+          <span id="operatorRole">—</span>
+        </div>
+        <button id="logoutBtn" class="btn secondary" type="button">Logout</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <!-- @section: hero -->
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Hoje · <span id="todayLabel">—</span></div>
+          <h1>Checklists do Dia</h1>
+          <p>Escolhe o período do turno, executa as checklists pendentes e submete as respostas antes da hora limite.</p>
+        </div>
+        <aside class="refresh-card" aria-live="polite">
+          <span>Atualização automática</span>
+          <strong id="refreshLabel">A cada 5 minutos</strong>
+        </aside>
+      </section>
+
+      <!-- @section: period-tabs -->
+      <nav class="tabs" aria-label="Períodos de checklists">
+        <button class="tab-btn active" type="button" data-period="abertura">Abertura (0/0)</button>
+        <button class="tab-btn" type="button" data-period="recorrente">Recorrente (0/0)</button>
+        <button class="tab-btn" type="button" data-period="fecho">Fecho (0/0)</button>
+      </nav>
+
+      <!-- @section: cards-grid -->
+      <section id="cardsGrid" class="grid" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <!-- @section: execution-modal -->
+  <div id="modalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <section class="modal">
+      <header class="modal-head">
+        <div>
+          <h2 id="modalTitle">Executar checklist</h2>
+          <p id="modalSubtitle">Preenche todos os campos necessários.</p>
+        </div>
+        <button id="closeModalBtn" class="icon-btn" type="button" aria-label="Fechar modal">×</button>
+      </header>
+      <form id="executionForm">
+        <div id="modalBody" class="modal-body"></div>
+        <footer class="modal-foot">
+          <button id="cancelExecutionBtn" class="btn secondary" type="button">Cancelar</button>
+          <button class="btn" type="submit">Submeter</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay hidden" aria-live="assertive">
+    <div class="spinner-card"><span class="spinner"></span><span id="loadingText">A carregar...</span></div>
+  </div>
+
+  <div id="toastZone" class="toast-zone" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const WORKER_URL = 'https://checklists-api.jorgepronto20.workers.dev';
+
+    const STORAGE = {
+      token: 'op_token',
+      nome: 'op_nome',
+      cargo: 'op_cargo',
+      colabId: 'op_colab_id'
+    };
+
+    const PERIODS = [
+      { key: 'abertura', label: 'Abertura' },
+      { key: 'recorrente', label: 'Recorrente' },
+      { key: 'fecho', label: 'Fecho' }
+    ];
+
+    const state = {
+      token: localStorage.getItem(STORAGE.token) || '',
+      nome: localStorage.getItem(STORAGE.nome) || '',
+      cargo: localStorage.getItem(STORAGE.cargo) || '',
+      colabId: localStorage.getItem(STORAGE.colabId) || '',
+      activePeriod: 'abertura',
+      assignments: [],
+      currentAssignment: null,
+      refreshTimer: null
+    };
+
+    const els = {
+      loginScreen: document.getElementById('loginScreen'),
+      passwordScreen: document.getElementById('passwordScreen'),
+      appScreen: document.getElementById('appScreen'),
+      loginForm: document.getElementById('loginForm'),
+      passwordForm: document.getElementById('passwordForm'),
+      cancelPasswordBtn: document.getElementById('cancelPasswordBtn'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      operatorName: document.getElementById('operatorName'),
+      operatorRole: document.getElementById('operatorRole'),
+      todayLabel: document.getElementById('todayLabel'),
+      refreshLabel: document.getElementById('refreshLabel'),
+      cardsGrid: document.getElementById('cardsGrid'),
+      tabButtons: Array.from(document.querySelectorAll('.tab-btn')),
+      modalBackdrop: document.getElementById('modalBackdrop'),
+      modalTitle: document.getElementById('modalTitle'),
+      modalSubtitle: document.getElementById('modalSubtitle'),
+      modalBody: document.getElementById('modalBody'),
+      executionForm: document.getElementById('executionForm'),
+      closeModalBtn: document.getElementById('closeModalBtn'),
+      cancelExecutionBtn: document.getElementById('cancelExecutionBtn'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      loadingText: document.getElementById('loadingText'),
+      toastZone: document.getElementById('toastZone')
+    };
+
+    function init() {
+      els.todayLabel.textContent = formatToday();
+      bindEvents();
+      if (state.token) {
+        showApp();
+        fetchToday();
+        startAutoRefresh();
+      } else {
+        showLogin();
+      }
+    }
+
+    function bindEvents() {
+      els.loginForm.addEventListener('submit', handleLogin);
+      els.passwordForm.addEventListener('submit', handleChangePassword);
+      els.cancelPasswordBtn.addEventListener('click', logout);
+      els.logoutBtn.addEventListener('click', logout);
+      els.closeModalBtn.addEventListener('click', closeModal);
+      els.cancelExecutionBtn.addEventListener('click', closeModal);
+      els.modalBackdrop.addEventListener('click', (event) => {
+        if (event.target === els.modalBackdrop) closeModal();
+      });
+      els.executionForm.addEventListener('submit', handleChecklistSubmit);
+      els.tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          state.activePeriod = button.dataset.period;
+          renderTabs();
+          renderCards();
+        });
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !els.modalBackdrop.classList.contains('hidden')) closeModal();
+      });
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const form = new FormData(els.loginForm);
+      const username = String(form.get('username') || '').trim();
+      const password = String(form.get('password') || '');
+      if (!username || !password) return toast('Preenche o utilizador e a password.', 'error');
+
+      try {
+        setLoading(true, 'A autenticar...');
+        const data = await apiFetch('/api/operador/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password })
+        }, false);
+
+        state.token = data.token || '';
+        state.nome = data.nome || username;
+        state.cargo = data.cargo || 'Operador';
+        state.colabId = extractColabId(state.token);
+        persistSession();
+
+        if (data.force_password_change === true) {
+          showPasswordChange();
+          toast('Define uma nova password para continuar.', 'success');
+        } else {
+          showApp();
+          await fetchToday();
+          startAutoRefresh();
+          toast('Login efetuado com sucesso.', 'success');
+        }
+      } catch (error) {
+        toast(error.message || 'Não foi possível iniciar sessão.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function handleChangePassword(event) {
+      event.preventDefault();
+      const nova = document.getElementById('newPassword').value;
+      const confirmar = document.getElementById('confirmPassword').value;
+      if (nova.length < 6) return toast('A nova password deve ter pelo menos 6 caracteres.', 'error');
+      if (nova !== confirmar) return toast('As passwords não coincidem.', 'error');
+
+      try {
+        setLoading(true, 'A atualizar password...');
+        await apiFetch('/api/operador/change-password', {
+          method: 'POST',
+          body: JSON.stringify({ token: state.token, nova_password: nova })
+        }, false);
+        els.passwordForm.reset();
+        showApp();
+        await fetchToday();
+        startAutoRefresh();
+        toast('Password alterada com sucesso.', 'success');
+      } catch (error) {
+        toast(error.message || 'Não foi possível alterar a password.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function fetchToday({ silent = false } = {}) {
+      if (!state.token) return;
+      try {
+        if (!silent) setLoading(true, 'A carregar checklists...');
+        const data = await apiFetch('/api/operador/hoje', {
+          method: 'GET',
+          headers: { Authorization: 'Bearer ' + state.token }
+        }, true);
+        state.assignments = Array.isArray(data) ? data.map(normalizeAssignment) : [];
+        renderTabs();
+        renderCards();
+        els.refreshLabel.textContent = 'Última atualização: ' + new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      } catch (error) {
+        if (String(error.message || '').toLowerCase().includes('401') || String(error.message || '').toLowerCase().includes('token')) {
+          logout(false);
+          toast('Sessão expirada. Inicia sessão novamente.', 'error');
+        } else {
+          toast(error.message || 'Erro ao carregar checklists do dia.', 'error');
+        }
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    }
+
+    function normalizeAssignment(item) {
+      return {
+        id: item.id,
+        modelo_id: item.modelo_id,
+        modelo_nome: item.modelo_nome || 'Checklist sem nome',
+        estrutura: item.estrutura,
+        periodo: normalizePeriod(item.periodo),
+        hora_limite: item.hora_limite || '',
+        concluida: Boolean(item.concluida)
+      };
+    }
+
+    function normalizePeriod(periodo) {
+      const value = String(periodo || '').trim().toLowerCase();
+      if (value.includes('abert')) return 'abertura';
+      if (value.includes('fech') || value.includes('cho')) return 'fecho';
+      if (value.includes('rec')) return 'recorrente';
+      return PERIODS.some((p) => p.key === value) ? value : 'recorrente';
+    }
+
+    function renderTabs() {
+      els.tabButtons.forEach((button) => {
+        const period = button.dataset.period;
+        const items = state.assignments.filter((item) => item.periodo === period);
+        const done = items.filter((item) => item.concluida).length;
+        const label = PERIODS.find((p) => p.key === period).label;
+        button.textContent = label + ' (' + done + '/' + items.length + ')';
+        button.classList.toggle('active', state.activePeriod === period);
+      });
+    }
+
+    function renderCards() {
+      const items = state.assignments.filter((item) => item.periodo === state.activePeriod);
+      if (!items.length) {
+        els.cardsGrid.innerHTML = '<div class="empty-state"><strong>Sem checklists neste período</strong><span>Quando existirem tarefas atribuídas, aparecem aqui automaticamente.</span></div>';
+        return;
+      }
+
+      els.cardsGrid.innerHTML = items.map((item) => {
+        const status = getStatus(item);
+        const statusLabel = status === 'done' ? 'Concluída ✓' : status === 'late' ? 'Em atraso' : 'Pendente';
+        const btn = item.concluida
+          ? '<button class="btn secondary" type="button" disabled>Já submetida</button>'
+          : '<button class="btn" type="button" data-action="execute" data-id="' + escapeAttr(item.id) + '">Executar</button>';
+        return '<article class="check-card ' + status + '">' +
+          '<div>' +
+            '<div class="card-top">' +
+              '<div>' +
+                '<h3 class="card-title">' + escapeHtml(item.modelo_nome) + '</h3>' +
+                '<div class="card-meta">' +
+                  '<span class="pill">⏰ Limite: ' + escapeHtml(item.hora_limite || '—') + '</span>' +
+                  '<span class="pill">📋 ' + escapeHtml(PERIODS.find((p) => p.key === item.periodo).label) + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<span class="badge ' + (status === 'done' ? 'done' : status === 'late' ? 'late' : 'pending') + '">' + statusLabel + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div>' + btn + '</div>' +
+        '</article>';
+      }).join('');
+
+      els.cardsGrid.querySelectorAll('[data-action="execute"]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = state.assignments.find((entry) => String(entry.id) === String(button.dataset.id));
+          if (item) openModal(item);
+        });
+      });
+    }
+
+    function getStatus(item) {
+      if (item.concluida) return 'done';
+      if (isPastLimit(item.hora_limite)) return 'late';
+      return 'pending';
+    }
+
+    function isPastLimit(horaLimite) {
+      if (!horaLimite) return false;
+      const clean = String(horaLimite).slice(0, 5);
+      if (!/^\d{2}:\d{2}$/.test(clean)) return false;
+      const now = new Date();
+      const [h, m] = clean.split(':').map(Number);
+      const limit = new Date();
+      limit.setHours(h, m, 0, 0);
+      return now > limit;
+    }
+
+    function openModal(item) {
+      state.currentAssignment = item;
+      const fields = parseEstrutura(item.estrutura);
+      els.modalTitle.textContent = item.modelo_nome;
+      els.modalSubtitle.textContent = 'Período: ' + PERIODS.find((p) => p.key === item.periodo).label + ' · Hora limite: ' + (item.hora_limite || '—');
+      els.modalBody.innerHTML = fields.length ? fields.map(renderField).join('') : renderEmptyStructure();
+      bindDynamicFields();
+      els.modalBackdrop.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      state.currentAssignment = null;
+      els.modalBackdrop.classList.add('hidden');
+      els.executionForm.reset();
+      els.modalBody.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    function parseEstrutura(estrutura) {
+      try {
+        const parsed = typeof estrutura === 'string' ? JSON.parse(estrutura) : estrutura;
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((field, index) => ({
+          id: field.id || 'campo_' + index,
+          tipo: String(field.tipo || 'texto').toLowerCase(),
+          label: field.label || field.nome || 'Campo ' + (index + 1),
+          obrigatorio: field.obrigatorio !== false
+        }));
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderField(field, index) {
+      const safeId = 'field_' + index;
+      const typeLabel = field.tipo.replace('_', '/');
+      let control = '';
+
+      if (field.tipo === 'sim_nao') {
+        control = '<div class="choice-row" data-choice="' + safeId + '">' +
+          '<button class="choice-btn yes" type="button" data-value="Sim">Sim</button>' +
+          '<button class="choice-btn no" type="button" data-value="Não">Não</button>' +
+          '<input type="hidden" id="' + safeId + '" data-field-index="' + index + '" data-field-type="sim_nao" data-field-label="' + escapeAttr(field.label) + '" ' + (field.obrigatorio ? 'required' : '') + ' />' +
+        '</div>';
+      } else if (field.tipo === 'numero') {
+        control = '<input id="' + safeId + '" class="input" type="number" step="any" data-field-index="' + index + '" data-field-type="numero" data-field-label="' + escapeAttr(field.label) + '" ' + (field.obrigatorio ? 'required' : '') + ' />';
+      } else if (field.tipo === 'foto') {
+        control = '<div class="file-box">' +
+          '<input id="' + safeId + '" type="file" accept="image/*" capture="environment" data-field-index="' + index + '" data-field-type="foto" data-field-label="' + escapeAttr(field.label) + '" ' + (field.obrigatorio ? 'required' : '') + ' />' +
+          '<p class="hint">Abre a câmara do dispositivo quando suportado. A imagem é guardada nas respostas em Base64.</p>' +
+          '<img class="preview-img" src="data:," alt="Pré-visualização da fotografia" data-preview-for="' + safeId + '" />' +
+        '</div>';
+      } else if (field.tipo === 'nota') {
+        control = '<textarea id="' + safeId + '" class="input" data-field-index="' + index + '" data-field-type="nota" data-field-label="' + escapeAttr(field.label) + '" ' + (field.obrigatorio ? 'required' : '') + '></textarea>';
+      } else {
+        control = '<input id="' + safeId + '" class="input" type="text" data-field-index="' + index + '" data-field-type="texto" data-field-label="' + escapeAttr(field.label) + '" ' + (field.obrigatorio ? 'required' : '') + ' />';
+      }
+
+      return '<div class="question-card">' +
+        '<label class="q-label" for="' + safeId + '"><span>' + escapeHtml(field.label) + (field.obrigatorio ? ' *' : '') + '</span><span class="q-type">' + escapeHtml(typeLabel) + '</span></label>' +
+        control +
+      '</div>';
+    }
+
+    function renderEmptyStructure() {
+      return '<div class="empty-state"><strong>Modelo sem campos configurados</strong><span>Podes submeter a checklist sem respostas adicionais.</span></div>';
+    }
+
+    function bindDynamicFields() {
+      els.modalBody.querySelectorAll('[data-choice]').forEach((group) => {
+        const hidden = group.querySelector('input[type="hidden"]');
+        group.querySelectorAll('.choice-btn').forEach((button) => {
+          button.addEventListener('click', () => {
+            hidden.value = button.dataset.value;
+            group.querySelectorAll('.choice-btn').forEach((b) => b.classList.remove('active'));
+            button.classList.add('active');
+          });
+        });
+      });
+
+      els.modalBody.querySelectorAll('input[type="file"][data-field-type="foto"]').forEach((input) => {
+        input.addEventListener('change', () => {
+          const preview = els.modalBody.querySelector('[data-preview-for="' + input.id + '"]');
+          const file = input.files && input.files[0];
+          if (!preview || !file) return;
+          preview.src = URL.createObjectURL(file);
+          preview.style.display = 'block';
+        });
+      });
+    }
+
+    async function handleChecklistSubmit(event) {
+      event.preventDefault();
+      if (!state.currentAssignment) return;
+
+      try {
+        setLoading(true, 'A submeter checklist...');
+        const respostas = await collectResponses();
+        const payload = {
+          colaborador_id: state.colabId,
+          modelo_id: state.currentAssignment.modelo_id,
+          atribuicao_id: state.currentAssignment.id,
+          data: new Date().toISOString().slice(0, 10),
+          hora: new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
+          respostas
+        };
+
+        await apiFetch('/api/checklists', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }, true);
+
+        const updated = state.assignments.find((item) => String(item.id) === String(state.currentAssignment.id));
+        if (updated) updated.concluida = true;
+        closeModal();
+        renderTabs();
+        renderCards();
+        toast('Checklist submetida com sucesso.', 'success');
+        fetchToday({ silent: true });
+      } catch (error) {
+        toast(error.message || 'Não foi possível submeter a checklist.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function collectResponses() {
+      const controls = Array.from(els.modalBody.querySelectorAll('[data-field-index]'));
+      const respostas = [];
+      for (const control of controls) {
+        const tipo = control.dataset.fieldType;
+        const label = control.dataset.fieldLabel;
+        let valor = control.value;
+
+        if (tipo === 'foto') {
+          const file = control.files && control.files[0];
+          valor = file ? await fileToBase64(file) : '';
+          respostas.push({
+            tipo,
+            label,
+            valor,
+            ficheiro_nome: file ? file.name : '',
+            ficheiro_tipo: file ? file.type : '',
+            ficheiro_tamanho: file ? file.size : 0
+          });
+        } else {
+          respostas.push({ tipo, label, valor });
+        }
+      }
+      return respostas;
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Erro ao ler a fotografia.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function apiFetch(path, options = {}, includeAuth = true) {
+      const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+      if (includeAuth && state.token && !headers.Authorization) headers.Authorization = 'Bearer ' + state.token;
+
+      const response = await fetch(WORKER_URL + path, Object.assign({}, options, { headers }));
+      const contentType = response.headers.get('content-type') || '';
+      const body = contentType.includes('application/json') ? await response.json().catch(() => ({})) : await response.text();
+
+      if (!response.ok) {
+        const message = typeof body === 'string' ? body : (body.error || body.message || ('Erro HTTP ' + response.status));
+        throw new Error(message);
+      }
+      return body;
+    }
+
+    function persistSession() {
+      localStorage.setItem(STORAGE.token, state.token || '');
+      localStorage.setItem(STORAGE.nome, state.nome || '');
+      localStorage.setItem(STORAGE.cargo, state.cargo || '');
+      localStorage.setItem(STORAGE.colabId, state.colabId || '');
+    }
+
+    function extractColabId(token) {
+      try {
+        return atob(token).split(':')[0] || '';
+      } catch (error) {
+        return '';
+      }
+    }
+
+    function showLogin() {
+      els.loginScreen.classList.remove('hidden');
+      els.passwordScreen.classList.add('hidden');
+      els.appScreen.classList.add('hidden');
+    }
+
+    function showPasswordChange() {
+      els.loginScreen.classList.add('hidden');
+      els.passwordScreen.classList.remove('hidden');
+      els.appScreen.classList.add('hidden');
+    }
+
+    function showApp() {
+      els.loginScreen.classList.add('hidden');
+      els.passwordScreen.classList.add('hidden');
+      els.appScreen.classList.remove('hidden');
+      els.operatorName.textContent = state.nome || 'Operador';
+      els.operatorRole.textContent = state.cargo || 'Operador';
+    }
+
+    function logout(showMessage = true) {
+      stopAutoRefresh();
+      state.token = '';
+      state.nome = '';
+      state.cargo = '';
+      state.colabId = '';
+      state.assignments = [];
+      state.currentAssignment = null;
+      Object.values(STORAGE).forEach((key) => localStorage.removeItem(key));
+      els.loginForm.reset();
+      els.passwordForm.reset();
+      closeModal();
+      showLogin();
+      if (showMessage) toast('Sessão terminada.', 'success');
+    }
+
+    function startAutoRefresh() {
+      stopAutoRefresh();
+      state.refreshTimer = window.setInterval(() => fetchToday({ silent: true }), 5 * 60 * 1000);
+    }
+
+    function stopAutoRefresh() {
+      if (state.refreshTimer) window.clearInterval(state.refreshTimer);
+      state.refreshTimer = null;
+    }
+
+    function setLoading(isLoading, text = 'A carregar...') {
+      els.loadingText.textContent = text;
+      els.loadingOverlay.classList.toggle('hidden', !isLoading);
+    }
+
+    function toast(message, type = 'success') {
+      const node = document.createElement('div');
+      node.className = 'toast ' + (type === 'error' ? 'error' : 'success');
+      node.innerHTML = '<span class="mark">' + (type === 'error' ? '!' : '✓') + '</span><p>' + escapeHtml(message) + '</p>';
+      els.toastZone.appendChild(node);
+      window.setTimeout(() => {
+        node.style.opacity = '0';
+        node.style.transform = 'translateY(8px)';
+        node.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+        window.setTimeout(() => node.remove(), 220);
+      }, 4200);
+    }
+
+    function formatToday() {
+      return new Date().toLocaleDateString('pt-PT', {
+        weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll('`', '&#096;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
