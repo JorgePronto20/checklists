@@ -151,8 +151,6 @@
         <button class="nav-item" onclick="navigate('licencas',this)">🔑 Licenças</button>
         <button class="nav-item" onclick="navigate('pagamentos',this)">💳 Pagamentos</button>
         <button class="nav-item" onclick="navigate('clientes',this)">🏢 Clientes</button>
-        <button class="nav-item" onclick="showSection('credenciais',this)">🔑 Credenciais</button>
-        <button class="nav-item" onclick="showSection('atribuicoes',this)">📋 Atribuições</button>
         <div class="nav-section">Conteúdo</div>
         <button class="nav-item" onclick="navigate('landings',this)">🖼️ Landings</button>
         <div class="nav-section">Sistema</div>
@@ -259,47 +257,6 @@
           </div>
         </div>
 
-        <!-- CREDENCIAIS -->
-        <div class="page" id="page-credenciais">
-          <div class="section-card">
-            <div class="section-header">
-              <div>
-                <div class="section-title">🔑 Credenciais de Acesso — Portal Operador</div>
-                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Define username e password para cada colaborador aceder ao portal do operador.</div>
-              </div>
-              <button class="btn btn-ghost btn-sm" onclick="loadCredenciais()">↻ Actualizar</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Nome</th><th>Cargo</th><th>Username actual</th><th>Ações</th></tr></thead>
-                <tbody id="credenciaisBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ATRIBUIÇÕES -->
-        <div class="page" id="page-atribuicoes">
-          <div class="section-card">
-            <div class="section-header">
-              <div>
-                <div class="section-title">📋 Atribuições de Checklists</div>
-                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Liga modelos a colaboradores, períodos operacionais e horas limite.</div>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-ghost btn-sm" onclick="loadAtribuicoes()">↻ Actualizar</button>
-                <button class="btn btn-primary" onclick="openAtribuicaoModal()">+ Nova Atribuição</button>
-              </div>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Modelo</th><th>Colaborador</th><th>Período</th><th>Hora Limite</th><th>Dias</th><th>Estado</th><th>Acções</th></tr></thead>
-                <tbody id="atribuicoesBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <!-- INSTÂNCIAS -->
         <div class="page" id="page-instancias">
           <div class="section-card">
@@ -354,11 +311,11 @@
             <div class="section-card">
               <div class="section-header"><div class="section-title">API Cloudflare</div></div>
               <div class="form-group">
-                <label class="form-label">checklists-api.jorgepronto20.workers.dev</label>
+                <label class="form-label">Worker API URL</label>
                 <input type="text" class="form-control" id="cfApiUrl" placeholder="https://checklists-api.workers.dev">
               </div>
               <div class="form-group">
-                <label class="form-label">f3A9!kP2#Q7zL4@tM8vR1$eC6uN0%hB5xW3^sJ9gD2&yT7pF4</label>
+                <label class="form-label">Admin Secret (ADMIN_SECRET do Worker)</label>
                 <input type="password" class="form-control" id="cfAdminSecret" placeholder="••••••••">
               </div>
               <button class="btn btn-primary" onclick="saveAdminConfig()">💾 Guardar</button>
@@ -411,7 +368,10 @@
           <div class="section-card">
             <div class="section-header">
               <div class="section-title">🖼️ Gestão de Landings</div>
-              <div style="font-size:0.78rem;color:var(--text-muted);" id="cmsApiStatus">Worker não configurado</div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:0.78rem;color:var(--text-muted);" id="cmsApiStatus">Worker não configurado</div>
+                <button class="btn btn-primary btn-sm" onclick="openNovaLandingModal()">+ Nova Landing</button>
+              </div>
             </div>
             <div id="landingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
           </div>
@@ -587,85 +547,34 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modalCredencial">
+<div class="modal-overlay" id="modalNovaLanding">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="credModalTitle">Editar credenciais</div>
-      <button class="modal-close" onclick="closeModal('modalCredencial')">✕</button>
-    </div>
-    <input type="hidden" id="credColabId">
-    <div class="form-group">
-      <label class="form-label">Colaborador</label>
-      <input type="text" class="form-control" id="credColabNome" disabled>
+      <div class="modal-title">+ Nova Landing</div>
+      <button class="modal-close" onclick="closeModal('modalNovaLanding')">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Username</label>
-      <input type="text" class="form-control" id="credUsername" placeholder="ex: joao.silva">
+      <label class="form-label">ID da app (slug) *</label>
+      <input type="text" class="form-control" id="novaLandingId" placeholder="ex: minha-app (só minúsculas e hífens)" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')">
+      <div style="font-size:0.73rem;color:var(--text-muted);margin-top:4px;">Será a chave KV <code style="background:var(--dark3);padding:1px 5px;border-radius:4px;">cms:landing:minha-app</code></div>
     </div>
     <div class="form-group">
-      <label class="form-label">Nova Password</label>
-      <input type="password" class="form-control" id="credPassword" placeholder="Vazio mantém a password actual">
-      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:5px;">Obrigatória ao criar credenciais pela primeira vez; opcional ao editar.</div>
+      <label class="form-label">Nome / Título *</label>
+      <input type="text" class="form-control" id="novaLandingTitulo" placeholder="ex: A Minha App">
     </div>
-    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px;">
-      <input type="checkbox" id="credForceChange" style="width:18px;height:18px;accent-color:var(--primary);">
-      <span style="font-size:0.85rem;">Forçar troca na próxima entrada</span>
-    </label>
+    <div class="form-group">
+      <label class="form-label">Baseada em (opcional)</label>
+      <select class="form-control" id="novaLandingBase">
+        <option value="">— Criar em branco —</option>
+        <option value="checklists">☑ CHECKLISTS</option>
+        <option value="faturalite">🧾 FATURALITE</option>
+        <option value="trading">📈 TRADING</option>
+        <option value="hub">⚡ Hub Principal</option>
+      </select>
+    </div>
     <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modalCredencial')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveCredencial()">💾 Guardar</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalAtribuicao">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="atrModalTitle">Nova Atribuição</div>
-      <button class="modal-close" onclick="closeModal('modalAtribuicao')">✕</button>
-    </div>
-    <input type="hidden" id="atrEditId">
-    <div class="form-group">
-      <label class="form-label">Modelo</label>
-      <select class="form-control" id="atrModelo"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Colaborador</label>
-      <select class="form-control" id="atrColaborador"></select>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Período</label>
-        <select class="form-control" id="atrPeriodo">
-          <option value="abertura">Abertura</option>
-          <option value="recorrente">Recorrente</option>
-          <option value="fecho">Fecho</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Hora Limite</label>
-        <input type="time" class="form-control" id="atrHoraLimite">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Dias da Semana</label>
-      <div id="atrDias" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:0.82rem;">
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="1" style="accent-color:var(--primary);"> Seg</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="2" style="accent-color:var(--primary);"> Ter</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="3" style="accent-color:var(--primary);"> Qua</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="4" style="accent-color:var(--primary);"> Qui</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="5" style="accent-color:var(--primary);"> Sex</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="6" style="accent-color:var(--primary);"> Sáb</label>
-        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" value="7" style="accent-color:var(--primary);"> Dom</label>
-      </div>
-    </div>
-    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px;">
-      <input type="checkbox" id="atrActiva" checked style="width:18px;height:18px;accent-color:var(--primary);">
-      <span style="font-size:0.85rem;">Activa</span>
-    </label>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modalAtribuicao')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveAtribuicao()">💾 Guardar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modalNovaLanding')">Cancelar</button>
+      <button class="btn btn-primary" onclick="criarNovaLanding()">✓ Criar Landing</button>
     </div>
   </div>
 </div>
@@ -753,7 +662,7 @@ function navigate(page, el) {
   document.getElementById('page-'+page).classList.add('active');
   if(el) el.classList.add('active');
   currentPage = page;
-  const titles = { dashboard:'Dashboard Admin', licencas:'Licenças', pagamentos:'Pagamentos', clientes:'Clientes', credenciais:'Credenciais', atribuicoes:'Atribuições', landings:'Landings', instancias:'Instâncias', logs:'Logs', config:'Configurações' };
+  const titles = { dashboard:'Dashboard Admin', licencas:'Licenças', pagamentos:'Pagamentos', clientes:'Clientes', landings:'Landings', instancias:'Instâncias', logs:'Logs', config:'Configurações' };
   document.getElementById('pageTitle').textContent = titles[page]||page;
   refreshPage();
 }
@@ -761,7 +670,7 @@ function navigate(page, el) {
 function showSection(page, el) { navigate(page, el); }
 
 function refreshPage() {
-  const fns = { dashboard:renderDashboard, licencas:renderLicencas, pagamentos:renderPagamentos, clientes:renderClientes, credenciais:loadCredenciais, atribuicoes:loadAtribuicoes, instancias:renderInstancias, logs:renderLogs, config:renderConfig, landings:renderLandings };
+  const fns = { dashboard:renderDashboard, licencas:renderLicencas, pagamentos:renderPagamentos, clientes:renderClientes, instancias:renderInstancias, logs:renderLogs, config:renderConfig, landings:renderLandings };
   if(fns[currentPage]) fns[currentPage]();
 }
 
@@ -972,209 +881,6 @@ function criarLicForCliente(email,empresa,plano){
   openModal('modalLicenca');
 }
 
-// === CREDENCIAIS OPERADOR ===
-let colaboradoresCache = [];
-let modelosCache = [];
-let atribuicoesCache = [];
-
-function adminApiBase() {
-  return (localStorage.getItem('admin_api_url') || 'https://checklists-api.jorgepronto20.workers.dev').replace(/\/$/, '');
-}
-
-function adminHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    'Admin-Secret': localStorage.getItem('admin_secret') || ''
-  };
-}
-
-async function apiRequest(path, options={}) {
-  const headers = Object.assign({}, adminHeaders(), options.headers || {});
-  const res = await fetch(adminApiBase() + path, Object.assign({}, options, { headers }));
-  let data = null;
-  try { data = await res.json(); } catch(e) { data = null; }
-  if (!res.ok || (data && data.success === false)) throw new Error((data && data.error) || ('Erro HTTP ' + res.status));
-  return data;
-}
-
-function extractList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.items)) return payload.items;
-  if (Array.isArray(payload?.colaboradores)) return payload.colaboradores;
-  if (Array.isArray(payload?.modelos)) return payload.modelos;
-  if (Array.isArray(payload?.atribuicoes)) return payload.atribuicoes;
-  return [];
-}
-
-function htmlEscape(v) {
-  return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-}
-
-async function loadColaboradores() {
-  const data = await apiRequest('/api/colaboradores');
-  colaboradoresCache = extractList(data);
-  return colaboradoresCache;
-}
-
-async function loadModelos() {
-  const data = await apiRequest('/api/modelos');
-  modelosCache = extractList(data);
-  return modelosCache;
-}
-
-async function loadCredenciais() {
-  const body = document.getElementById('credenciaisBody');
-  if (!body) return;
-  body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">A carregar colaboradores...</td></tr>';
-  try {
-    const list = await loadColaboradores();
-    body.innerHTML = list.length ? list.map(c => `
-      <tr>
-        <td><div style="font-size:0.85rem;font-weight:600;">${htmlEscape(c.nome || c.name || '-')}</div><div style="font-size:0.73rem;color:var(--text-muted);">ID #${htmlEscape(c.id)}</div></td>
-        <td>${htmlEscape(c.cargo || c.funcao || '-')}</td>
-        <td>${c.username ? `<span class="badge badge-info">${htmlEscape(c.username)}</span>` : '<span class="badge badge-neutral">Sem username</span>'}</td>
-        <td><button class="btn btn-primary btn-sm" onclick="openCredencialModal(${Number(c.id)})">Editar credenciais</button></td>
-      </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Sem colaboradores</td></tr>';
-  } catch(e) {
-    body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar colaboradores: ${htmlEscape(e.message)}</td></tr>`;
-    toast('Erro ao carregar colaboradores','error');
-  }
-}
-
-function openCredencialModal(id) {
-  const c = colaboradoresCache.find(x => Number(x.id) === Number(id));
-  if (!c) { toast('Colaborador não encontrado','error'); return; }
-  const creating = !c.username;
-  document.getElementById('credColabId').value = c.id;
-  document.getElementById('credColabNome').value = c.nome || c.name || '';
-  document.getElementById('credUsername').value = c.username || '';
-  document.getElementById('credPassword').value = '';
-  document.getElementById('credForceChange').checked = creating ? true : !!c.force_password_change;
-  document.getElementById('credModalTitle').textContent = creating ? 'Criar credenciais' : 'Editar credenciais';
-  openModal('modalCredencial');
-}
-
-async function saveCredencial() {
-  const id = document.getElementById('credColabId').value;
-  const c = colaboradoresCache.find(x => String(x.id) === String(id));
-  if (!c) { toast('Colaborador não encontrado','error'); return; }
-  const username = document.getElementById('credUsername').value.trim();
-  const password = document.getElementById('credPassword').value;
-  const force = document.getElementById('credForceChange').checked;
-  if (!username) { toast('Username obrigatório','error'); return; }
-  if (!c.username && !password) { toast('Password obrigatória ao criar credenciais','error'); return; }
-  const payload = Object.assign({}, c, { username, force_password_change: force ? 1 : 0 });
-  if (password) payload.password = password;
-  try {
-    await apiRequest('/api/colaboradores/' + encodeURIComponent(id), { method:'PUT', body:JSON.stringify(payload) });
-    closeModal('modalCredencial');
-    toast('Credenciais guardadas','success');
-    addLog('success','Credenciais actualizadas para colaborador #' + id);
-    await loadCredenciais();
-  } catch(e) { toast('Erro ao guardar credenciais: ' + e.message,'error'); }
-}
-
-// === ATRIBUIÇÕES ===
-function modeloNome(id) {
-  const m = modelosCache.find(x => String(x.id) === String(id) || String(x.modelo_id) === String(id));
-  return m ? (m.nome || m.titulo || m.name || ('Modelo #' + id)) : ('Modelo #' + (id || '-'));
-}
-
-function colaboradorNome(id) {
-  if (!id || String(id) === '0' || String(id).toLowerCase() === 'null') return 'Todos';
-  const c = colaboradoresCache.find(x => String(x.id) === String(id));
-  return c ? (c.nome || c.name || ('Colaborador #' + id)) : ('Colaborador #' + id);
-}
-
-function diasLabel(dias) {
-  const map = {1:'Seg',2:'Ter',3:'Qua',4:'Qui',5:'Sex',6:'Sáb',7:'Dom'};
-  let arr = Array.isArray(dias) ? dias : String(dias || '').split(',').map(x=>x.trim()).filter(Boolean);
-  return arr.length ? arr.map(d=>map[d] || d).join(', ') : '-';
-}
-
-async function loadAtribuicoes() {
-  const body = document.getElementById('atribuicoesBody');
-  if (!body) return;
-  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">A carregar atribuições...</td></tr>';
-  try {
-    await Promise.all([loadModelos(), loadColaboradores()]);
-    const data = await apiRequest('/api/atribuicoes');
-    atribuicoesCache = extractList(data);
-    body.innerHTML = atribuicoesCache.length ? atribuicoesCache.map(a => `
-      <tr>
-        <td>${htmlEscape(a.modelo_nome || modeloNome(a.modelo_id || a.modeloId))}</td>
-        <td>${htmlEscape(a.colaborador_nome || colaboradorNome(a.colaborador_id || a.colaboradorId))}</td>
-        <td><span class="badge badge-info">${htmlEscape(capitalize(a.periodo || '-'))}</span></td>
-        <td>${htmlEscape(a.hora_limite || a.horaLimite || '-')}</td>
-        <td>${htmlEscape(diasLabel(a.dias_semana || a.dias || a.diasSemana))}</td>
-        <td>${(a.activa ?? a.ativa ?? a.ativo ?? 1) ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-neutral">Inactiva</span>'}</td>
-        <td><div class="td-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openAtribuicaoModal(${Number(a.id)})">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteAtribuicao(${Number(a.id)})">Eliminar</button>
-        </div></td>
-      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">Sem atribuições</td></tr>';
-  } catch(e) {
-    body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar atribuições: ${htmlEscape(e.message)}</td></tr>`;
-    toast('Erro ao carregar atribuições','error');
-  }
-}
-
-async function openAtribuicaoModal(id=null) {
-  try {
-    if (!modelosCache.length || !colaboradoresCache.length) await Promise.all([loadModelos(), loadColaboradores()]);
-  } catch(e) { toast('Erro ao carregar listas para o formulário','error'); return; }
-  const isEdit = id !== null && id !== undefined;
-  const a = isEdit ? atribuicoesCache.find(x => Number(x.id) === Number(id)) : null;
-  document.getElementById('atrModalTitle').textContent = isEdit ? 'Editar Atribuição' : 'Nova Atribuição';
-  document.getElementById('atrEditId').value = isEdit ? id : '';
-  document.getElementById('atrModelo').innerHTML = modelosCache.map(m => `<option value="${htmlEscape(m.id || m.modelo_id)}">${htmlEscape(m.nome || m.titulo || m.name || ('Modelo #' + (m.id || m.modelo_id)))}</option>`).join('');
-  document.getElementById('atrColaborador').innerHTML = '<option value="">Todos os colaboradores</option>' + colaboradoresCache.map(c => `<option value="${htmlEscape(c.id)}">${htmlEscape(c.nome || c.name || ('Colaborador #' + c.id))}</option>`).join('');
-  document.getElementById('atrModelo').value = a ? (a.modelo_id || a.modeloId || '') : (modelosCache[0]?.id || modelosCache[0]?.modelo_id || '');
-  document.getElementById('atrColaborador').value = a ? (a.colaborador_id || a.colaboradorId || '') : '';
-  document.getElementById('atrPeriodo').value = a ? (a.periodo || 'abertura') : 'abertura';
-  document.getElementById('atrHoraLimite').value = a ? (a.hora_limite || a.horaLimite || '') : '';
-  const dias = Array.isArray(a?.dias_semana || a?.dias || a?.diasSemana) ? (a.dias_semana || a.dias || a.diasSemana).map(String) : String(a?.dias_semana || a?.dias || a?.diasSemana || '1,2,3,4,5').split(',').map(x=>x.trim());
-  document.querySelectorAll('#atrDias input[type="checkbox"]').forEach(cb => cb.checked = dias.includes(cb.value));
-  document.getElementById('atrActiva').checked = a ? !!(a.activa ?? a.ativa ?? a.ativo ?? 1) : true;
-  openModal('modalAtribuicao');
-}
-
-async function saveAtribuicao() {
-  const id = document.getElementById('atrEditId').value;
-  const dias = [...document.querySelectorAll('#atrDias input[type="checkbox"]:checked')].map(cb => Number(cb.value));
-  if (!document.getElementById('atrModelo').value) { toast('Seleccione um modelo','error'); return; }
-  if (!document.getElementById('atrHoraLimite').value) { toast('Hora limite obrigatória','error'); return; }
-  if (!dias.length) { toast('Seleccione pelo menos um dia','error'); return; }
-  const payload = {
-    modelo_id: document.getElementById('atrModelo').value,
-    colaborador_id: document.getElementById('atrColaborador').value || null,
-    periodo: document.getElementById('atrPeriodo').value,
-    hora_limite: document.getElementById('atrHoraLimite').value,
-    dias_semana: dias,
-    activa: document.getElementById('atrActiva').checked ? 1 : 0
-  };
-  try {
-    await apiRequest(id ? '/api/atribuicoes/' + encodeURIComponent(id) : '/api/atribuicoes', { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
-    closeModal('modalAtribuicao');
-    toast(id ? 'Atribuição actualizada' : 'Atribuição criada','success');
-    addLog('success', id ? 'Atribuição actualizada #' + id : 'Nova atribuição criada');
-    await loadAtribuicoes();
-  } catch(e) { toast('Erro ao guardar atribuição: ' + e.message,'error'); }
-}
-
-async function deleteAtribuicao(id) {
-  if (!confirm('Eliminar esta atribuição?')) return;
-  try {
-    await apiRequest('/api/atribuicoes/' + encodeURIComponent(id), { method:'DELETE' });
-    toast('Atribuição eliminada','success');
-    addLog('warning','Atribuição eliminada #' + id);
-    await loadAtribuicoes();
-  } catch(e) { toast('Erro ao eliminar atribuição: ' + e.message,'error'); }
-}
-
-function capitalize(v) { v = String(v || ''); return v ? v.charAt(0).toUpperCase() + v.slice(1) : v; }
-
 // === INSTÂNCIAS ===
 function renderInstancias() {
   const items = ADB.licencas.filter(l=>l.ativo).map(l=>`
@@ -1249,23 +955,36 @@ function renderLandings() {
     .catch(() => { status$.textContent = 'Erro ao ligar ao Worker'; status$.style.color='var(--danger)'; renderLandingsGrid(null); });
 }
 
+const BASE_APPS = ['checklists','faturalite','trading','hub'];
+
 function renderLandingsGrid(data) {
-  const apps = ['checklists','faturalite','trading','hub'];
-  const labels = { checklists:'☑ CHECKLISTS', faturalite:'🧾 FATURALITE', trading:'📈 TRADING', hub:'⚡ Hub Principal' };
   const grid = document.getElementById('landingsGrid');
-  grid.innerHTML = apps.map(app => {
+
+  // Landings base sempre presentes
+  const baseLabels = { checklists:'☑ CHECKLISTS', faturalite:'🧾 FATURALITE', trading:'📈 TRADING', hub:'⚡ Hub Principal' };
+
+  // Se não há dados do KV, mostrar só as base
+  const allApps = data
+    ? [...new Set([...BASE_APPS, ...data.map(x => x.app)])]
+    : [...BASE_APPS];
+
+  grid.innerHTML = allApps.map(app => {
+    const isBase = BASE_APPS.includes(app);
     const info = data ? (data.find(x => x.app === app) || {}) : {};
     const active = info.active !== false;
-    const updated = info.updated_at ? new Date(info.updated_at).toLocaleDateString('pt-PT') : 'Por defeito';
+    const label = baseLabels[app] || ('🚀 ' + app.toUpperCase());
+    const updated = info.updated_at ? new Date(info.updated_at).toLocaleDateString('pt-PT') : (isBase ? 'Por defeito' : 'Nova');
     return `<div style="background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:0.9rem;font-weight:700;">${labels[app]}</div>
+        <div style="font-size:0.9rem;font-weight:700;">${label}</div>
         <span style="padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:${active?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)'};color:${active?'#34d399':'#f87171'}">${active?'Activa':'Inactiva'}</span>
       </div>
       <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:12px;">Actualizado: ${updated}</div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="btn btn-primary btn-sm" style="flex:1;" onclick="editLanding('${app}')">✏️ Editar</button>
-        <button class="btn btn-${active?'danger':'success'} btn-sm" onclick="toggleLanding('${app}',${!active})">${active?'Desactivar':'Activar'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="duplicarLanding('${app}')" title="Duplicar landing">⧉</button>
+        <button class="btn btn-${active?'danger':'success'} btn-sm" onclick="toggleLanding('${app}',${!active})">${active?'❌':'✅'}</button>
+        ${!isBase ? `<button class="btn btn-danger btn-sm" onclick="eliminarLanding('${app}')" title="Eliminar landing">🗑</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1390,6 +1109,136 @@ async function toggleLanding(app, newActive) {
     if (d.success) { toast('Estado alterado: landing '+(newActive?'activada':'desactivada'),'success'); renderLandings(); }
     else toast('Erro: '+(d.error||''),'error');
   } catch(e) { toast('Erro de ligação','error'); }
+}
+
+// === NOVA LANDING / DUPLICAR / ELIMINAR ===
+
+function openNovaLandingModal() {
+  document.getElementById('novaLandingId').value = '';
+  document.getElementById('novaLandingTitulo').value = '';
+  document.getElementById('novaLandingBase').value = '';
+  // Actualizar select de "baseada em" com landings existentes no grid
+  const sel = document.getElementById('novaLandingBase');
+  const baseLabels = { checklists:'☑ CHECKLISTS', faturalite:'🧾 FATURALITE', trading:'📈 TRADING', hub:'⚡ Hub Principal' };
+  const existingCards = [...document.querySelectorAll('#landingsGrid button[onclick*="editLanding"]')].map(btn => {
+    const m = btn.getAttribute('onclick').match(/editLanding\('([^']+)'\)/);
+    return m ? m[1] : null;
+  }).filter(Boolean);
+  sel.innerHTML = '<option value="">— Criar em branco —</option>' + existingCards.map(app => `<option value="${app}">${baseLabels[app] || app}</option>`).join('');
+  openModal('modalNovaLanding');
+}
+
+async function criarNovaLanding() {
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const adminSecret = localStorage.getItem('admin_secret') || '';
+  const novoId = document.getElementById('novaLandingId').value.trim();
+  const titulo = document.getElementById('novaLandingTitulo').value.trim();
+  const base = document.getElementById('novaLandingBase').value;
+
+  if (!novoId) { toast('ID da app é obrigatório','error'); return; }
+  if (!/^[a-z0-9-]+$/.test(novoId)) { toast('ID só pode conter minúsculas, números e hífens','error'); return; }
+  if (!titulo) { toast('Nome / Título é obrigatório','error'); return; }
+  if (!apiUrl) { toast('Configure o Worker URL em Config primeiro','error'); return; }
+  if (!adminSecret) { toast('Configure o Admin Secret em Config primeiro','error'); return; }
+
+  let cfg = {};
+  // Copiar estrutura da landing base, se seleccionada
+  if (base) {
+    try {
+      const r = await fetch(apiUrl + '/api/cms/landing/' + base);
+      const d = await r.json();
+      cfg = JSON.parse(JSON.stringify(d.data || CMS_DEFAULTS[base] || {}));
+    } catch(e) {
+      cfg = JSON.parse(JSON.stringify(CMS_DEFAULTS[base] || {}));
+    }
+  } else {
+    cfg = { badge:'', title:'', subtitle:'', hero_image:'', features:[], plans:[], faq:[], cta_text:'Começar agora', cta_url:'', active:true };
+  }
+  cfg.app = novoId;
+  cfg.title = titulo;
+
+  try {
+    const r = await fetch(apiUrl + '/api/cms/landing/' + novoId, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'Admin-Secret': adminSecret },
+      body: JSON.stringify(cfg)
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast('Landing "' + novoId + '" criada com sucesso!', 'success');
+      addLog('success', 'Nova landing criada: ' + novoId);
+      closeModal('modalNovaLanding');
+      renderLandings();
+    } else {
+      toast('Erro ao criar landing: ' + (d.error || 'desconhecido'), 'error');
+    }
+  } catch(e) {
+    toast('Erro de ligação ao Worker', 'error');
+  }
+}
+
+async function duplicarLanding(appOrigem) {
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const adminSecret = localStorage.getItem('admin_secret') || '';
+  if (!apiUrl || !adminSecret) { toast('Configure Worker URL e Admin Secret em Config','error'); return; }
+
+  const novoId = prompt('ID para a nova landing (ex: nova-app):');
+  if (!novoId) return;
+  const slug = novoId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (!slug) { toast('ID inválido','error'); return; }
+
+  // Ler config da landing de origem
+  let cfg = {};
+  try {
+    const r = await fetch(apiUrl + '/api/cms/landing/' + appOrigem);
+    const d = await r.json();
+    cfg = JSON.parse(JSON.stringify(d.data || CMS_DEFAULTS[appOrigem] || {}));
+  } catch(e) {
+    cfg = JSON.parse(JSON.stringify(CMS_DEFAULTS[appOrigem] || {}));
+  }
+  cfg.app = slug;
+
+  try {
+    const r = await fetch(apiUrl + '/api/cms/landing/' + slug, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'Admin-Secret': adminSecret },
+      body: JSON.stringify(cfg)
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast('Landing duplicada para "' + slug + '"!', 'success');
+      addLog('success', 'Landing duplicada: ' + appOrigem + ' → ' + slug);
+      renderLandings();
+    } else {
+      toast('Erro ao duplicar: ' + (d.error || 'desconhecido'), 'error');
+    }
+  } catch(e) {
+    toast('Erro de ligação ao Worker', 'error');
+  }
+}
+
+async function eliminarLanding(app) {
+  if (!confirm('Eliminar landing "' + app + '"? Esta acção não pode ser desfeita.')) return;
+  const apiUrl = localStorage.getItem('admin_api_url') || '';
+  const adminSecret = localStorage.getItem('admin_secret') || '';
+  if (!apiUrl || !adminSecret) { toast('Configure Worker URL e Admin Secret em Config','error'); return; }
+
+  try {
+    const r = await fetch(apiUrl + '/api/cms/landing/' + app, {
+      method: 'DELETE',
+      headers: { 'Admin-Secret': adminSecret }
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast('Landing "' + app + '" eliminada', 'success');
+      addLog('warning', 'Landing eliminada: ' + app);
+      renderLandings();
+    } else {
+      toast('Erro ao eliminar: ' + (d.error || 'desconhecido'), 'error');
+    }
+  } catch(e) {
+    toast('Erro de ligação ao Worker', 'error');
+  }
 }
 
 

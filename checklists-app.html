@@ -456,9 +456,6 @@
         </button>
 
         <div class="nav-section">Operações</div>
-        <button class="nav-item" onclick="navigate('executar', this)">
-          <span class="nav-icon">▶️</span> Executar Checklist
-        </button>
         <button class="nav-item" onclick="navigate('checklists', this)">
           <span class="nav-icon">📋</span> Histórico
         </button>
@@ -473,6 +470,12 @@
         </button>
         <button class="nav-item" onclick="navigate('colaboradores', this)">
           <span class="nav-icon">👥</span> Colaboradores
+        </button>
+        <button class="nav-item" onclick="navigate('credenciais', this)">
+          <span class="nav-icon">🔑</span> Credenciais
+        </button>
+        <button class="nav-item" onclick="navigate('atribuicoes', this)">
+          <span class="nav-icon">📋</span> Atribuições
         </button>
 
         <div class="nav-section">Sistema</div>
@@ -696,6 +699,15 @@
 
         <!-- COLABORADORES -->
         <div class="page" id="page-colaboradores">
+          <div class="section-card" style="margin-bottom:16px; background: rgba(37,99,235,0.07); border-color: rgba(37,99,235,0.3);">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <div>
+                <div class="section-title" style="font-size:0.92rem;">▶️ Executar Checklist</div>
+                <div class="section-subtitle">Inicia um novo preenchimento de checklist por um colaborador</div>
+              </div>
+              <button class="btn btn-primary" onclick="openExecutarParaColaborador()">▶️ Executar Checklist</button>
+            </div>
+          </div>
           <div class="section-card">
             <div class="section-header">
               <div>
@@ -714,6 +726,67 @@
                 <tbody id="colaboradoresBody"></tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- CREDENCIAIS -->
+        <div class="page" id="page-credenciais">
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">🔑 Credenciais de Acesso — Portal Operador</div>
+                <div class="section-subtitle">Define o username e password de cada colaborador para acesso ao portal do operador (operador.html).</div>
+              </div>
+            </div>
+            <div id="credenciaisContent"></div>
+          </div>
+        </div>
+
+        <!-- ATRIBUIÇÕES -->
+        <div class="page" id="page-atribuicoes">
+          <!-- Tabela informativa de períodos -->
+          <div class="section-card" style="margin-bottom:16px;">
+            <div class="section-header">
+              <div>
+                <div class="section-title">📅 Referência de Períodos</div>
+                <div class="section-subtitle">Cada checklist é atribuído a um período com uma hora limite de submissão</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Período</th><th>Descrição</th><th>Hora Limite</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="badge" style="background:rgba(37,99,235,0.18);color:#60a5fa;">Abertura</span></td>
+                    <td>Checklists de início de turno</td>
+                    <td style="color:var(--text-muted); font-size:0.82rem;">Ex: até às 09:30</td>
+                  </tr>
+                  <tr>
+                    <td><span class="badge" style="background:rgba(16,185,129,0.18);color:#34d399;">Recorrente</span></td>
+                    <td>Podem ser feitas a qualquer momento</td>
+                    <td style="color:var(--text-muted); font-size:0.82rem;">Ex: até às 17:00</td>
+                  </tr>
+                  <tr>
+                    <td><span class="badge" style="background:rgba(245,158,11,0.18);color:#fbbf24;">Fecho</span></td>
+                    <td>Checklists de encerramento</td>
+                    <td style="color:var(--text-muted); font-size:0.82rem;">Ex: até às 22:00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Lista de atribuições activas -->
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">📋 Atribuições Activas</div>
+                <div class="section-subtitle">Define qual checklist é obrigatório, a quem, em que período e com que hora limite</div>
+              </div>
+              <button class="btn btn-primary" onclick="openAtribuicaoModal()">+ Nova Atribuição</button>
+            </div>
+            <div id="atribuicoesContent"></div>
           </div>
         </div>
 
@@ -888,6 +961,99 @@
       <button class="modal-close" onclick="closeModal('modalVerChecklist')">✕</button>
     </div>
     <div id="checklistDetalhes"></div>
+  </div>
+</div>
+
+<!-- Modal Credencial -->
+<div class="modal-overlay" id="modalCredencial">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalCredencialTitle">Definir Credenciais</div>
+      <button class="modal-close" onclick="closeModal('modalCredencial')">✕</button>
+    </div>
+    <input type="hidden" id="credencialColabId">
+    <div class="form-group">
+      <label class="form-label">Colaborador</label>
+      <div id="credencialColabNome" style="font-size:0.9rem; font-weight:600; padding:8px 0;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username *</label>
+      <input type="text" class="form-control" id="credencialUsername" placeholder="Ex: ana.silva" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nova Password <span style="color:var(--text-muted); font-size:0.78rem;">(deixe vazio para manter actual)</span></label>
+      <input type="password" class="form-control" id="credencialPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+        <input type="checkbox" id="credencialForceChange" checked style="width:16px; height:16px; cursor:pointer;">
+        <span>Forçar troca de password na próxima entrada</span>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalCredencial')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCredencial()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Atribuição -->
+<div class="modal-overlay" id="modalAtribuicao">
+  <div class="modal" style="width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modalAtribuicaoTitle">Nova Atribuição</div>
+      <button class="modal-close" onclick="closeModal('modalAtribuicao')">✕</button>
+    </div>
+    <input type="hidden" id="atribuicaoEditId">
+    <div class="form-group">
+      <label class="form-label">Modelo de Checklist *</label>
+      <select class="form-control" id="atribModelo">
+        <option value="">Selecionar modelo...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Colaborador *</label>
+      <select class="form-control" id="atribColaborador">
+        <option value="todos">Todos os colaboradores activos</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Período *</label>
+        <select class="form-control" id="atribPeriodo">
+          <option value="abertura">🔵 Abertura</option>
+          <option value="recorrente">🟢 Recorrente</option>
+          <option value="fecho">🟠 Fecho</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora Limite *</label>
+        <input type="time" class="form-control" id="atribHoraLimite">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dias da Semana</label>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="1" checked> Seg</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="2" checked> Ter</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="3" checked> Qua</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="4" checked> Qui</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="5" checked> Sex</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="6"> Sáb</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.83rem;"><input type="checkbox" class="atrib-dia" value="7"> Dom</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+        <input type="checkbox" id="atribAtiva" checked style="width:16px; height:16px; cursor:pointer;">
+        <span>Atribuição activa</span>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalAtribuicao')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btnEliminarAtrib" style="display:none;" onclick="deleteAtribuicaoFromModal()">🗑 Eliminar</button>
+      <button class="btn btn-primary" onclick="saveAtribuicao()">💾 Guardar</button>
+    </div>
   </div>
 </div>
 
@@ -1090,14 +1256,14 @@ function navigate(page, el) {
   if (el) el.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n => { if (n.onclick?.toString().includes("'"+page+"'")) n.classList.add('active'); });
   currentPage = page;
-  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', atividade:'Atividade', config:'Configurações' };
+  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', credenciais:'Credenciais', atribuicoes:'Atribuições', atividade:'Atividade', config:'Configurações' };
   document.getElementById('pageTitle').textContent = titles[page] || page;
   closeSidebar();
   refreshCurrentPage();
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig };
+  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, credenciais: loadCredenciais, atribuicoes: loadAtribuicoes };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -1653,6 +1819,318 @@ function novoChecklist() {
   document.getElementById('execColaborador').value = '';
   document.getElementById('execPin').value = '';
   renderExecutar();
+}
+
+function openExecutarParaColaborador() {
+  // Navega para a página executar a partir do contexto de colaboradores
+  const navBtn = document.querySelector('.nav-item[onclick*="\'executar\'"]');
+  navigate('executar', navBtn);
+}
+
+// ===================== CREDENCIAIS =====================
+function loadCredenciais() {
+  const container = document.getElementById('credenciaisContent');
+  if (!container) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (!isLive) {
+    // Modo Demo: mostrar tabela com dados locais
+    renderCredenciaisLocal(container);
+    return;
+  }
+  // Modo Live: chamar API
+  container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">A carregar...</div>';
+  fetch(DB.config.apiUrl + '/api/colaboradores', {
+    headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+  })
+  .then(r => r.json())
+  .then(data => renderCredenciaisTabela(container, data.results || data))
+  .catch(() => renderCredenciaisLocal(container));
+}
+
+function renderCredenciaisLocal(container) {
+  const list = DB.colaboradores;
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores. Crie colaboradores primeiro.</div></div>';
+    return;
+  }
+  renderCredenciaisTabela(container, list);
+}
+
+function renderCredenciaisTabela(container, list) {
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th><th>Cargo</th><th>Username</th><th>Acesso ao Portal</th><th>Acções</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(c => {
+            const hasUser = !!(c.username);
+            return `<tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:700;flex-shrink:0;">${(c.nome||'?').charAt(0)}</div>
+                  <span style="font-size:0.88rem;font-weight:600;">${c.nome||'—'}</span>
+                </div>
+              </td>
+              <td style="font-size:0.83rem;color:var(--text-muted);">${c.cargo||'—'}</td>
+              <td>
+                ${hasUser
+                  ? `<span style="font-family:monospace;font-size:0.85rem;color:var(--secondary);">${c.username}</span>`
+                  : `<span style="color:var(--text-muted);font-size:0.82rem;font-style:italic;">Não definido</span>`}
+              </td>
+              <td>
+                ${hasUser
+                  ? `<span class="badge badge-success">✓ Configurado</span>`
+                  : `<span class="badge badge-neutral">Sem acesso</span>`}
+              </td>
+              <td>
+                <button class="btn btn-ghost btn-sm" onclick="openCredencialModal(${c.id}, '${(c.nome||'').replace(/'/g,"\\'")}', '${(c.username||'').replace(/'/g,"\\'")}')">
+                  🔑 ${hasUser ? 'Editar' : 'Criar'}
+                </button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${DB.config.mode !== 'live' ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:8px; font-size:0.8rem; color:#fbbf24;">
+      ⚠️ Modo Demo activo. As credenciais são guardadas localmente. Configure a API em <strong>Configurações</strong> para persistência real.
+    </div>` : ''}
+  `;
+}
+
+function openCredencialModal(colabId, nome, usernameActual) {
+  document.getElementById('credencialColabId').value = colabId;
+  document.getElementById('credencialColabNome').textContent = nome;
+  document.getElementById('credencialUsername').value = usernameActual || '';
+  document.getElementById('credencialPassword').value = '';
+  document.getElementById('credencialForceChange').checked = true;
+  document.getElementById('modalCredencialTitle').textContent = usernameActual ? 'Editar Credenciais — ' + nome : 'Criar Credenciais — ' + nome;
+  document.getElementById('modalCredencial').classList.add('open');
+}
+
+function saveCredencial() {
+  const colabId = document.getElementById('credencialColabId').value;
+  const username = document.getElementById('credencialUsername').value.trim();
+  const password = document.getElementById('credencialPassword').value;
+  const forceChange = document.getElementById('credencialForceChange').checked;
+  if (!username) { toast('Username obrigatório', 'error'); return; }
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/colaboradores/' + colabId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
+      body: JSON.stringify({ username, ...(password ? { password } : {}), force_password_change: forceChange })
+    })
+    .then(r => r.json())
+    .then(() => { toast('Credenciais guardadas', 'success'); closeModal('modalCredencial'); loadCredenciais(); })
+    .catch(() => toast('Erro ao guardar credenciais', 'error'));
+  } else {
+    // Demo: guardar localmente
+    const c = DB.colaboradores.find(x => x.id == colabId);
+    if (c) {
+      c.username = username;
+      if (password) c.portal_password = password;
+      c.force_password_change = forceChange;
+      saveToStorage();
+    }
+    toast('Credenciais guardadas (demo local)', 'success');
+    closeModal('modalCredencial');
+    loadCredenciais();
+  }
+}
+
+// ===================== ATRIBUIÇÕES =====================
+function loadAtribuicoes() {
+  const container = document.getElementById('atribuicoesContent');
+  if (!container) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">A carregar...</div>';
+    fetch(DB.config.apiUrl + '/api/atribuicoes', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(data => renderAtribuicoesTabela(container, data.results || data))
+    .catch(() => renderAtribuicoesTabela(container, DB.atribuicoes || []));
+  } else {
+    renderAtribuicoesTabela(container, DB.atribuicoes || []);
+  }
+}
+
+function renderAtribuicoesTabela(container, list) {
+  const periodoBadge = p => {
+    if (p === 'abertura') return '<span class="badge" style="background:rgba(37,99,235,0.18);color:#60a5fa;">Abertura</span>';
+    if (p === 'recorrente') return '<span class="badge" style="background:rgba(16,185,129,0.18);color:#34d399;">Recorrente</span>';
+    if (p === 'fecho') return '<span class="badge" style="background:rgba(245,158,11,0.18);color:#fbbf24;">Fecho</span>';
+    return '<span class="badge badge-neutral">' + p + '</span>';
+  };
+  const diasLabel = dias => {
+    if (!dias || !dias.length) return '—';
+    const nomes = ['','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    return dias.map(d => nomes[d] || d).join(', ');
+  };
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">Sem atribuições. Crie a primeira clicando em "+ Nova Atribuição".</div>
+      </div>
+      ${DB.config.mode !== 'live' ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:8px; font-size:0.8rem; color:#fbbf24;">
+        ⚠️ Modo Demo. As atribuições são guardadas localmente. Configure a API em <strong>Configurações</strong> para persistência real.
+      </div>` : ''}
+    `;
+    return;
+  }
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Modelo</th><th>Colaborador</th><th>Período</th><th>Hora Limite</th><th>Dias</th><th>Estado</th><th>Acções</th></tr>
+        </thead>
+        <tbody>
+          ${list.map(a => {
+            const modelo = DB.modelos.find(x => x.id == a.modelo_id);
+            const colab = a.colaborador_id === 'todos' || !a.colaborador_id
+              ? null
+              : DB.colaboradores.find(x => x.id == a.colaborador_id);
+            return `<tr>
+              <td style="font-size:0.85rem;font-weight:600;">${modelo?.nome || a.modelo_nome || 'N/D'}</td>
+              <td style="font-size:0.83rem;">${colab ? colab.nome : '<span class="badge badge-info">Todos</span>'}</td>
+              <td>${periodoBadge(a.periodo)}</td>
+              <td style="font-family:monospace;font-size:0.85rem;color:var(--secondary);">${a.hora_limite || '—'}</td>
+              <td style="font-size:0.8rem;color:var(--text-muted);">${diasLabel(a.dias)}</td>
+              <td>${a.ativa || a.ativo ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-neutral">Inactiva</span>'}</td>
+              <td>
+                <div class="td-actions">
+                  <button class="btn btn-ghost btn-icon btn-sm" onclick="openAtribuicaoModal(${a.id})">✏️</button>
+                  <button class="btn btn-danger btn-icon btn-sm" onclick="deleteAtribuicao(${a.id})">🗑</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${DB.config.mode !== 'live' ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:8px; font-size:0.8rem; color:#fbbf24;">
+      ⚠️ Modo Demo. As atribuições são guardadas localmente. Configure a API em <strong>Configurações</strong> para persistência real.
+    </div>` : ''}
+  `;
+}
+
+function openAtribuicaoModal(id) {
+  // Preencher selects de modelos e colaboradores
+  const selModelo = document.getElementById('atribModelo');
+  selModelo.innerHTML = '<option value="">Selecionar modelo...</option>' +
+    DB.modelos.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+  const selColab = document.getElementById('atribColaborador');
+  selColab.innerHTML = '<option value="todos">Todos os colaboradores activos</option>' +
+    DB.colaboradores.filter(c=>c.ativo).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+  const btnEliminar = document.getElementById('btnEliminarAtrib');
+  if (id) {
+    // Editar
+    const a = (DB.atribuicoes||[]).find(x=>x.id==id);
+    document.getElementById('modalAtribuicaoTitle').textContent = 'Editar Atribuição';
+    document.getElementById('atribuicaoEditId').value = id;
+    btnEliminar.style.display = 'inline-flex';
+    if (a) {
+      selModelo.value = a.modelo_id || '';
+      selColab.value = a.colaborador_id || 'todos';
+      document.getElementById('atribPeriodo').value = a.periodo || 'abertura';
+      document.getElementById('atribHoraLimite').value = a.hora_limite || '';
+      document.getElementById('atribAtiva').checked = !!(a.ativa || a.ativo);
+      // Dias
+      document.querySelectorAll('.atrib-dia').forEach(cb => {
+        cb.checked = (a.dias||[]).map(String).includes(cb.value);
+      });
+    }
+  } else {
+    // Nova
+    document.getElementById('modalAtribuicaoTitle').textContent = 'Nova Atribuição';
+    document.getElementById('atribuicaoEditId').value = '';
+    btnEliminar.style.display = 'none';
+    selModelo.value = '';
+    selColab.value = 'todos';
+    document.getElementById('atribPeriodo').value = 'abertura';
+    document.getElementById('atribHoraLimite').value = '';
+    document.getElementById('atribAtiva').checked = true;
+    document.querySelectorAll('.atrib-dia').forEach(cb => {
+      cb.checked = ['1','2','3','4','5'].includes(cb.value);
+    });
+  }
+  document.getElementById('modalAtribuicao').classList.add('open');
+}
+
+function saveAtribuicao() {
+  const modeloId = document.getElementById('atribModelo').value;
+  const horaLimite = document.getElementById('atribHoraLimite').value;
+  if (!modeloId) { toast('Selecione um modelo', 'error'); return; }
+  if (!horaLimite) { toast('Hora limite obrigatória', 'error'); return; }
+  const dias = Array.from(document.querySelectorAll('.atrib-dia:checked')).map(cb => parseInt(cb.value));
+  if (!dias.length) { toast('Selecione pelo menos um dia da semana', 'error'); return; }
+  const editId = document.getElementById('atribuicaoEditId').value;
+  const payload = {
+    modelo_id: modeloId,
+    colaborador_id: document.getElementById('atribColaborador').value,
+    periodo: document.getElementById('atribPeriodo').value,
+    hora_limite: horaLimite,
+    dias,
+    ativa: document.getElementById('atribAtiva').checked ? 1 : 0
+  };
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    const method = editId ? 'PUT' : 'POST';
+    const url = DB.config.apiUrl + '/api/atribuicoes' + (editId ? '/' + editId : '');
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(() => { toast('Atribuição guardada', 'success'); closeModal('modalAtribuicao'); loadAtribuicoes(); })
+    .catch(() => toast('Erro ao guardar atribuição', 'error'));
+  } else {
+    if (!DB.atribuicoes) DB.atribuicoes = [];
+    if (editId) {
+      const idx = DB.atribuicoes.findIndex(x => x.id == editId);
+      if (idx >= 0) DB.atribuicoes[idx] = { ...DB.atribuicoes[idx], ...payload };
+    } else {
+      DB.atribuicoes.push({ id: Date.now(), ...payload, criado_em: new Date().toISOString() });
+    }
+    saveToStorage();
+    toast('Atribuição guardada (demo local)', 'success');
+    closeModal('modalAtribuicao');
+    loadAtribuicoes();
+  }
+}
+
+function deleteAtribuicao(id) {
+  if (!confirm('Eliminar esta atribuição?')) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/atribuicoes/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(() => { toast('Atribuição eliminada', 'success'); loadAtribuicoes(); })
+    .catch(() => toast('Erro ao eliminar', 'error'));
+  } else {
+    DB.atribuicoes = (DB.atribuicoes||[]).filter(x => x.id != id);
+    saveToStorage();
+    toast('Atribuição eliminada', 'success');
+    loadAtribuicoes();
+  }
+}
+
+function deleteAtribuicaoFromModal() {
+  const id = document.getElementById('atribuicaoEditId').value;
+  if (!id) return;
+  closeModal('modalAtribuicao');
+  deleteAtribuicao(id);
 }
 
 // ===================== CONFIG =====================
