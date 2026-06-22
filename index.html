@@ -52,9 +52,12 @@
   .nav-links { display: flex; gap: 24px; align-items: center; }
   .nav-links a { color: var(--text-muted); font-size: 0.88rem; text-decoration: none; transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
+  .nav-apps-links { display: flex; gap: 16px; align-items: center; }
+  .nav-apps-links a { color: var(--text-muted); font-size: 0.88rem; text-decoration: none; transition: color .2s; }
+  .nav-apps-links a:hover { color: var(--text); }
   .nav-cta { padding: 9px 20px; background: var(--primary); color: #fff; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
   .nav-cta:hover { background: var(--primary-dark); }
-  @media (max-width: 720px) { .nav-links { display: none; } }
+  @media (max-width: 720px) { .nav-links { display: none; } .nav-apps-links { display: none; } }
 
   /* ── HERO ── */
   .hero {
@@ -197,6 +200,17 @@
   .mock-live { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #34d399; margin-bottom: 10px; }
   .live-dot  { width: 7px; height: 7px; border-radius: 50%; background: #34d399; animation: blink 1.5s infinite; }
 
+  /* ── APP SECTION DINAMICA ── */
+  .dyn-app-section { border-top: 1px solid rgba(255,255,255,0.05); padding: 96px 5vw; }
+  .dyn-app-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; max-width: 1200px; margin: 0 auto; }
+  @media (max-width: 860px) { .dyn-app-layout { grid-template-columns: 1fr; gap: 36px; } }
+  .dyn-app-visual-placeholder {
+    border-radius: 18px; border: 1px solid rgba(255,255,255,0.07);
+    background: var(--dark2); box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    padding: 40px 28px; display: flex; align-items: center; justify-content: center;
+    min-height: 220px; font-size: 3rem; color: rgba(255,255,255,0.08);
+  }
+
   /* ── PRICING OVERVIEW ── */
   .pricing-section { background: var(--dark2); }
   .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 960px; margin: 0 auto; }
@@ -234,7 +248,7 @@
   footer {
     border-top: 1px solid rgba(255,255,255,0.05);
     padding: 40px 5vw; display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: gap;
+    justify-content: space-between; flex-wrap: wrap;
     gap: 16px;
   }
   .footer-logo { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
@@ -263,9 +277,12 @@
     <span class="nav-logo-text">Suite de Apps</span>
   </div>
   <div class="nav-links">
-    <a href="#checklists">Checklists</a>
-    <a href="#faturalite">FaturaLite</a>
-    <a href="#trading">Trading</a>
+    <!-- links de apps gerados dinamicamente -->
+    <div id="navAppsLinks" class="nav-apps-links">
+      <a href="#checklists">Checklists</a>
+      <a href="#faturalite">FaturaLite</a>
+      <a href="#trading">Trading</a>
+    </div>
     <a href="#precos">Preços</a>
   </div>
   <a href="#precos" class="nav-cta">Ver Planos</a>
@@ -282,157 +299,171 @@
     </div>
     <h1>Todas as ferramentas que<br>o teu negócio precisa<br><span class="grad">num só lugar</span></h1>
     <p class="hero-sub">Gestão operacional, faturação inteligente e trading automatizado. Apps independentes, ecossistema integrado.</p>
-    <div class="hero-apps-pills">
+    <!-- Pills geradas dinamicamente -->
+    <div class="hero-apps-pills" id="appPills">
       <a href="#checklists" class="app-pill pill-blue">☑ CHECKLISTS</a>
       <a href="#faturalite" class="app-pill pill-green">🧾 FATURALITE</a>
       <a href="#trading"    class="app-pill pill-purple">📈 TRADING</a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Apps prontas a usar</div></div>
+      <div class="stat"><div class="stat-val" id="statAppsCount">3</div><div class="stat-lbl">Apps prontas a usar</div></div>
       <div class="stat"><div class="stat-val">100%</div><div class="stat-lbl">Web · sem instalação</div></div>
       <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Disponibilidade</div></div>
     </div>
   </div>
 </div>
 
-<!-- ── APP 1: CHECKLISTS ── -->
-<section id="checklists" class="app-section">
-  <div class="app-layout">
-    <div class="app-info">
-      <div class="section-tag tag-blue">☑ CHECKLISTS</div>
-      <h2 class="app-title">Gestão Operacional<br>para Equipas</h2>
-      <p class="app-desc">Centraliza todas as checklists da tua operação. Controla abertura, fecho, auditorias e qualquer procedimento recorrente — com alertas automáticos e histórico completo.</p>
-      <ul class="features-list">
-        <li><div class="feat-check check-blue">✓</div><span>Checklists de abertura, recorrentes e fecho</span></li>
-        <li><div class="feat-check check-blue">✓</div><span>Alertas automáticos quando prazo é ultrapassado</span></li>
-        <li><div class="feat-check check-blue">✓</div><span>Captura de fotos e vídeos directamente na app</span></li>
-        <li><div class="feat-check check-blue">✓</div><span>Gestão de colaboradores com PIN por operador</span></li>
-        <li><div class="feat-check check-blue">✓</div><span>Dashboard em tempo real com KPIs operacionais</span></li>
-        <li><div class="feat-check check-blue">✓</div><span>Histórico auditável de todas as operações</span></li>
-      </ul>
-      <div class="app-actions">
-        <a href="landing-checklists.html" class="btn-app-primary bg-blue">Saber mais →</a>
-        <a href="checkout.html?app=checklists&plan=annual" class="btn-app-ghost ghost-blue">Comprar agora</a>
-      </div>
-    </div>
-    <div class="app-visual">
-      <div class="visual-bar">
-        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-        <span class="visual-title">checklists-app · Dashboard</span>
-      </div>
-      <div class="mock-kpi-row">
-        <div class="mock-kpi">
-          <div class="mock-kpi-val" style="color:#2563eb">12</div>
-          <div class="mock-kpi-lbl">Hoje</div>
-        </div>
-        <div class="mock-kpi">
-          <div class="mock-kpi-val" style="color:#10b981">10</div>
-          <div class="mock-kpi-lbl">Concluídas</div>
-        </div>
-        <div class="mock-kpi">
-          <div class="mock-kpi-val" style="color:#ef4444">2</div>
-          <div class="mock-kpi-lbl">Alertas</div>
-        </div>
-      </div>
-      <div class="mock-row"><span>Abertura de Loja · Ana Silva</span><span class="mock-badge mock-ok">Concluído</span></div>
-      <div class="mock-row"><span>Auditoria de Qualidade · João S.</span><span class="mock-badge mock-ok">Concluído</span></div>
-      <div class="mock-row"><span>Fecho de Loja · Maria Costa</span><span class="mock-badge mock-pend">Pendente</span></div>
-      <div class="mock-row" style="margin-top:10px;"><span style="color:#f87171;font-size:0.76rem;">⚠ Temperatura fora do limite — Frigorífico sala 2</span><span class="mock-badge mock-alto">Alta</span></div>
-    </div>
+<!-- ── APPS CONTAINER (dinâmico) ── -->
+<div id="appsContainer">
+  <!-- spinner enquanto carrega -->
+  <div id="appsLoading" style="text-align:center;padding:80px;color:#94a3b8;font-size:0.9rem;letter-spacing:0.5px;">
+    A carregar apps…
   </div>
-</section>
 
-<!-- ── APP 2: FATURALITE ── -->
-<section id="faturalite" class="app-section">
-  <div class="app-layout reverse">
-    <div class="app-info">
-      <div class="section-tag tag-green">🧾 FATURALITE</div>
-      <h2 class="app-title">Faturação Inteligente<br>sem Complicações</h2>
-      <p class="app-desc">Emite, gere e controla as tuas faturas com OCR automático, QR Code e backup seguro. Modos demo e live para testes sem risco.</p>
-      <ul class="features-list">
-        <li><div class="feat-check check-green">✓</div><span>Leitura automática de faturas por OCR</span></li>
-        <li><div class="feat-check check-green">✓</div><span>QR Code em cada fatura para acesso rápido</span></li>
-        <li><div class="feat-check check-green">✓</div><span>Cálculo automático de IVA e Total Pago</span></li>
-        <li><div class="feat-check check-green">✓</div><span>Backup exportável em JSON a qualquer momento</span></li>
-        <li><div class="feat-check check-green">✓</div><span>Modo Demo para testar sem comprometer dados</span></li>
-        <li><div class="feat-check check-green">✓</div><span>Estado das faturas (paga, pendente, vencida)</span></li>
-      </ul>
-      <div class="app-actions">
-        <a href="landing-faturalite.html" class="btn-app-primary bg-green">Saber mais →</a>
-        <a href="checkout.html?app=faturalite&plan=annual" class="btn-app-ghost ghost-green">Comprar agora</a>
-      </div>
-    </div>
-    <div class="app-visual">
-      <div class="visual-bar">
-        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-        <span class="visual-title">faturalite · Faturas</span>
-      </div>
-      <div class="mock-invoice">
-        <div class="mock-invoice-header">
-          <span class="mock-invoice-num">FT 2025/0042</span>
-          <span class="mock-badge mock-ok">Paga</span>
-        </div>
-        <div class="mock-invoice-line"><span>Serviços de Consultoria</span><span>€ 1 200,00</span></div>
-        <div class="mock-invoice-line"><span>IVA 23%</span><span>€ 276,00</span></div>
-        <div class="mock-invoice-total"><span>Total</span><span style="color:#6ee7b7">€ 1 476,00</span></div>
-      </div>
-      <div class="mock-invoice">
-        <div class="mock-invoice-header">
-          <span class="mock-invoice-num">FT 2025/0043</span>
-          <span class="mock-badge mock-pend">Pendente</span>
-        </div>
-        <div class="mock-invoice-line"><span>Licença Software Anual</span><span>€ 490,00</span></div>
-        <div class="mock-invoice-line"><span>IVA 23%</span><span>€ 112,70</span></div>
-        <div class="mock-invoice-total"><span>Total</span><span style="color:#fbbf24">€ 602,70</span></div>
-      </div>
-    </div>
-  </div>
-</section>
+  <!-- ── FALLBACK ESTÁTICO (visível quando WORKER_URL vazio) ── -->
+  <div id="appsFallback" style="display:none;">
 
-<!-- ── APP 3: TRADING ── -->
-<section id="trading" class="app-section">
-  <div class="app-layout">
-    <div class="app-info">
-      <div class="section-tag tag-purple">📈 TRADING AGENT</div>
-      <h2 class="app-title">Robô de Trading<br>Automatizado 24/7</h2>
-      <p class="app-desc">SafeTrade opera por ti com a estratégia Rebuy-Target: compra a preço fixo, vende com lucro percentual, recompra automaticamente. Monitorização contínua mesmo com o browser fechado.</p>
-      <ul class="features-list">
-        <li><div class="feat-check check-purple">✓</div><span>Estratégia Rebuy-Target totalmente automatizada</span></li>
-        <li><div class="feat-check check-purple">✓</div><span>Cron Worker — opera 24h/dia no servidor</span></li>
-        <li><div class="feat-check check-purple">✓</div><span>Indicadores RSI e MACD para decisões técnicas</span></li>
-        <li><div class="feat-check check-purple">✓</div><span>Modo Paper Trading para testar sem risco</span></li>
-        <li><div class="feat-check check-purple">✓</div><span>Watchlist com múltiplos activos em simultâneo</span></li>
-        <li><div class="feat-check check-purple">✓</div><span>Gestão de risco com Stop-Loss configurável</span></li>
-      </ul>
-      <div class="app-actions">
-        <a href="landing-trading.html" class="btn-app-primary bg-purple">Saber mais →</a>
-        <a href="checkout.html?app=trading&plan=annual" class="btn-app-ghost ghost-purple">Comprar agora</a>
+    <!-- APP 1: CHECKLISTS -->
+    <section id="checklists" class="app-section">
+      <div class="app-layout">
+        <div class="app-info">
+          <div class="section-tag tag-blue">☑ CHECKLISTS</div>
+          <h2 class="app-title">Gestão Operacional<br>para Equipas</h2>
+          <p class="app-desc">Centraliza todas as checklists da tua operação. Controla abertura, fecho, auditorias e qualquer procedimento recorrente — com alertas automáticos e histórico completo.</p>
+          <ul class="features-list">
+            <li><div class="feat-check check-blue">✓</div><span>Checklists de abertura, recorrentes e fecho</span></li>
+            <li><div class="feat-check check-blue">✓</div><span>Alertas automáticos quando prazo é ultrapassado</span></li>
+            <li><div class="feat-check check-blue">✓</div><span>Captura de fotos e vídeos directamente na app</span></li>
+            <li><div class="feat-check check-blue">✓</div><span>Gestão de colaboradores com PIN por operador</span></li>
+            <li><div class="feat-check check-blue">✓</div><span>Dashboard em tempo real com KPIs operacionais</span></li>
+            <li><div class="feat-check check-blue">✓</div><span>Histórico auditável de todas as operações</span></li>
+          </ul>
+          <div class="app-actions">
+            <a href="produto.html?app=checklists" class="btn-app-primary bg-blue">Saber mais →</a>
+            <a href="checkout.html?app=checklists&plan=annual" class="btn-app-ghost ghost-blue">Comprar agora</a>
+          </div>
+        </div>
+        <div class="app-visual">
+          <div class="visual-bar">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="visual-title">checklists-app · Dashboard</span>
+          </div>
+          <div class="mock-kpi-row">
+            <div class="mock-kpi">
+              <div class="mock-kpi-val" style="color:#2563eb">12</div>
+              <div class="mock-kpi-lbl">Hoje</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-val" style="color:#10b981">10</div>
+              <div class="mock-kpi-lbl">Concluídas</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-val" style="color:#ef4444">2</div>
+              <div class="mock-kpi-lbl">Alertas</div>
+            </div>
+          </div>
+          <div class="mock-row"><span>Abertura de Loja · Ana Silva</span><span class="mock-badge mock-ok">Concluído</span></div>
+          <div class="mock-row"><span>Auditoria de Qualidade · João S.</span><span class="mock-badge mock-ok">Concluído</span></div>
+          <div class="mock-row"><span>Fecho de Loja · Maria Costa</span><span class="mock-badge mock-pend">Pendente</span></div>
+          <div class="mock-row" style="margin-top:10px;"><span style="color:#f87171;font-size:0.76rem;">⚠ Temperatura fora do limite — Frigorífico sala 2</span><span class="mock-badge mock-alto">Alta</span></div>
+        </div>
       </div>
-    </div>
-    <div class="app-visual">
-      <div class="visual-bar">
-        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-        <span class="visual-title">trading-agent · Live</span>
+    </section>
+
+    <!-- APP 2: FATURALITE -->
+    <section id="faturalite" class="app-section">
+      <div class="app-layout reverse">
+        <div class="app-info">
+          <div class="section-tag tag-green">🧾 FATURALITE</div>
+          <h2 class="app-title">Faturação Inteligente<br>sem Complicações</h2>
+          <p class="app-desc">Emite, gere e controla as tuas faturas com OCR automático, QR Code e backup seguro. Modos demo e live para testes sem risco.</p>
+          <ul class="features-list">
+            <li><div class="feat-check check-green">✓</div><span>Leitura automática de faturas por OCR</span></li>
+            <li><div class="feat-check check-green">✓</div><span>QR Code em cada fatura para acesso rápido</span></li>
+            <li><div class="feat-check check-green">✓</div><span>Cálculo automático de IVA e Total Pago</span></li>
+            <li><div class="feat-check check-green">✓</div><span>Backup exportável em JSON a qualquer momento</span></li>
+            <li><div class="feat-check check-green">✓</div><span>Modo Demo para testar sem comprometer dados</span></li>
+            <li><div class="feat-check check-green">✓</div><span>Estado das faturas (paga, pendente, vencida)</span></li>
+          </ul>
+          <div class="app-actions">
+            <a href="produto.html?app=faturalite" class="btn-app-primary bg-green">Saber mais →</a>
+            <a href="checkout.html?app=faturalite&plan=annual" class="btn-app-ghost ghost-green">Comprar agora</a>
+          </div>
+        </div>
+        <div class="app-visual">
+          <div class="visual-bar">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="visual-title">faturalite · Faturas</span>
+          </div>
+          <div class="mock-invoice">
+            <div class="mock-invoice-header">
+              <span class="mock-invoice-num">FT 2025/0042</span>
+              <span class="mock-badge mock-ok">Paga</span>
+            </div>
+            <div class="mock-invoice-line"><span>Serviços de Consultoria</span><span>€ 1 200,00</span></div>
+            <div class="mock-invoice-line"><span>IVA 23%</span><span>€ 276,00</span></div>
+            <div class="mock-invoice-total"><span>Total</span><span style="color:#6ee7b7">€ 1 476,00</span></div>
+          </div>
+          <div class="mock-invoice">
+            <div class="mock-invoice-header">
+              <span class="mock-invoice-num">FT 2025/0043</span>
+              <span class="mock-badge mock-pend">Pendente</span>
+            </div>
+            <div class="mock-invoice-line"><span>Licença Software Anual</span><span>€ 490,00</span></div>
+            <div class="mock-invoice-line"><span>IVA 23%</span><span>€ 112,70</span></div>
+            <div class="mock-invoice-total"><span>Total</span><span style="color:#fbbf24">€ 602,70</span></div>
+          </div>
+        </div>
       </div>
-      <div class="mock-live"><div class="live-dot"></div> Agente activo · BTC/USDT · RSI 42.3</div>
-      <div class="mock-chart-area">
-        <svg class="mock-chart-svg" viewBox="0 0 300 80" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path d="M0,60 L30,52 L60,58 L90,40 L120,44 L150,30 L180,36 L210,22 L240,28 L270,18 L300,14 L300,80 L0,80 Z" fill="url(#cg)"/>
-          <path d="M0,60 L30,52 L60,58 L90,40 L120,44 L150,30 L180,36 L210,22 L240,28 L270,18 L300,14" fill="none" stroke="#8b5cf6" stroke-width="2"/>
-        </svg>
+    </section>
+
+    <!-- APP 3: TRADING -->
+    <section id="trading" class="app-section">
+      <div class="app-layout">
+        <div class="app-info">
+          <div class="section-tag tag-purple">📈 TRADING AGENT</div>
+          <h2 class="app-title">Robô de Trading<br>Automatizado 24/7</h2>
+          <p class="app-desc">SafeTrade opera por ti com a estratégia Rebuy-Target: compra a preço fixo, vende com lucro percentual, recompra automaticamente. Monitorização contínua mesmo com o browser fechado.</p>
+          <ul class="features-list">
+            <li><div class="feat-check check-purple">✓</div><span>Estratégia Rebuy-Target totalmente automatizada</span></li>
+            <li><div class="feat-check check-purple">✓</div><span>Cron Worker — opera 24h/dia no servidor</span></li>
+            <li><div class="feat-check check-purple">✓</div><span>Indicadores RSI e MACD para decisões técnicas</span></li>
+            <li><div class="feat-check check-purple">✓</div><span>Modo Paper Trading para testar sem risco</span></li>
+            <li><div class="feat-check check-purple">✓</div><span>Watchlist com múltiplos activos em simultâneo</span></li>
+            <li><div class="feat-check check-purple">✓</div><span>Gestão de risco com Stop-Loss configurável</span></li>
+          </ul>
+          <div class="app-actions">
+            <a href="produto.html?app=trading" class="btn-app-primary bg-purple">Saber mais →</a>
+            <a href="checkout.html?app=trading&plan=annual" class="btn-app-ghost ghost-purple">Comprar agora</a>
+          </div>
+        </div>
+        <div class="app-visual">
+          <div class="visual-bar">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="visual-title">trading-agent · Live</span>
+          </div>
+          <div class="mock-live"><div class="live-dot"></div> Agente activo · BTC/USDT · RSI 42.3</div>
+          <div class="mock-chart-area">
+            <svg class="mock-chart-svg" viewBox="0 0 300 80" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,60 L30,52 L60,58 L90,40 L120,44 L150,30 L180,36 L210,22 L240,28 L270,18 L300,14 L300,80 L0,80 Z" fill="url(#cg)"/>
+              <path d="M0,60 L30,52 L60,58 L90,40 L120,44 L150,30 L180,36 L210,22 L240,28 L270,18 L300,14" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="mock-trade-row"><span>BTC/USDT — Compra</span><span class="mock-pos">+4.2%</span></div>
+          <div class="mock-trade-row"><span>ETH/USDT — Compra</span><span class="mock-pos">+2.8%</span></div>
+          <div class="mock-trade-row"><span>SOL/USDT — Aguarda rebuy</span><span class="mock-neg">-1.1%</span></div>
+        </div>
       </div>
-      <div class="mock-trade-row"><span>BTC/USDT — Compra</span><span class="mock-pos">+4.2%</span></div>
-      <div class="mock-trade-row"><span>ETH/USDT — Compra</span><span class="mock-pos">+2.8%</span></div>
-      <div class="mock-trade-row"><span>SOL/USDT — Aguarda rebuy</span><span class="mock-neg">-1.1%</span></div>
-    </div>
-  </div>
-</section>
+    </section>
+
+  </div><!-- /#appsFallback -->
+</div><!-- /#appsContainer -->
 
 <!-- ── PREÇOS RESUMO ── -->
 <section id="precos" class="pricing-section">
@@ -441,10 +472,11 @@
     <h2 class="section-title">Preço de entrada acessível,<br>escala com o teu negócio</h2>
     <p class="section-sub" style="margin:0 auto 48px;">Cada app tem o seu plano independente. Paga só o que usas.</p>
   </div>
-  <div class="pricing-grid">
+  <!-- Cards de preço gerados dinamicamente -->
+  <div id="precosContainer" class="pricing-grid">
 
-    <!-- CHECKLISTS -->
-    <div class="pricing-card pc-blue">
+    <!-- FALLBACK ESTÁTICO: CHECKLISTS -->
+    <div class="pricing-card pc-blue" data-app-fallback="checklists">
       <div class="pc-app-badge pill-blue">☑ CHECKLISTS</div>
       <div class="pc-title">Starter</div>
       <div class="pc-desc">1 loja · colaboradores ilimitados · alertas automáticos</div>
@@ -454,11 +486,11 @@
         <span class="pc-period">/ano</span>
       </div>
       <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Business €49 · Enterprise €99</div>
-      <a href="landing-checklists.html#precos" class="pc-cta bg-blue">Ver todos os planos →</a>
+      <a href="produto.html?app=checklists#precos" class="pc-cta bg-blue">Ver todos os planos →</a>
     </div>
 
-    <!-- FATURALITE -->
-    <div class="pricing-card pc-green">
+    <!-- FALLBACK ESTÁTICO: FATURALITE -->
+    <div class="pricing-card pc-green" data-app-fallback="faturalite">
       <div class="pc-app-badge pill-green">🧾 FATURALITE</div>
       <div class="pc-title">Standard</div>
       <div class="pc-desc">Faturas ilimitadas · OCR · QR Code · backup JSON</div>
@@ -468,11 +500,11 @@
         <span class="pc-period">/ano</span>
       </div>
       <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Actualizar preço antes de publicar</div>
-      <a href="landing-faturalite.html#precos" class="pc-cta bg-green">Ver todos os planos →</a>
+      <a href="produto.html?app=faturalite#precos" class="pc-cta bg-green">Ver todos os planos →</a>
     </div>
 
-    <!-- TRADING -->
-    <div class="pricing-card pc-purple">
+    <!-- FALLBACK ESTÁTICO: TRADING -->
+    <div class="pricing-card pc-purple" data-app-fallback="trading">
       <div class="pc-app-badge pill-purple">📈 TRADING AGENT</div>
       <div class="pc-title">Pro</div>
       <div class="pc-desc">Activos ilimitados · Cron 24/7 · RSI + MACD · Paper mode</div>
@@ -482,7 +514,7 @@
         <span class="pc-period">/ano</span>
       </div>
       <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Actualizar preço antes de publicar</div>
-      <a href="landing-trading.html#precos" class="pc-cta bg-purple">Ver todos os planos →</a>
+      <a href="produto.html?app=trading#precos" class="pc-cta bg-purple">Ver todos os planos →</a>
     </div>
 
   </div>
@@ -525,7 +557,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">⚡ Suite de Apps</div>
-  <div class="footer-links">
+  <div class="footer-links" id="footerLinks">
     <a href="#checklists">CHECKLISTS</a>
     <a href="#faturalite">FATURALITE</a>
     <a href="#trading">TRADING</a>
@@ -537,9 +569,189 @@
 <script>
   // ── CMS LOADER ──
   // Após deploy do Worker, preenche esta variável:
-  const WORKER_URL = 'https://checklists-api.jorgepronto20.workers.dev';
+  const WORKER_URL = ''; // ex: 'https://checklists-api.jorgepronto20.workers.dev'
 
-  (async () => {
+  // ─────────────────────────────────────────────
+  // Paleta de cores para apps sem cor definida
+  // ─────────────────────────────────────────────
+  const PALETA = [
+    { color: '#2563eb', grad: 'linear-gradient(135deg,#2563eb 0%,#0ea5e9 100%)', textColor: '#93c5fd' },
+    { color: '#059669', grad: 'linear-gradient(135deg,#059669 0%,#10b981 100%)', textColor: '#6ee7b7' },
+    { color: '#7c3aed', grad: 'linear-gradient(135deg,#7c3aed 0%,#8b5cf6 100%)', textColor: '#c4b5fd' },
+    { color: '#dc2626', grad: 'linear-gradient(135deg,#dc2626 0%,#f87171 100%)', textColor: '#fca5a5' },
+    { color: '#d97706', grad: 'linear-gradient(135deg,#d97706 0%,#fbbf24 100%)', textColor: '#fde68a' },
+    { color: '#0891b2', grad: 'linear-gradient(135deg,#0891b2 0%,#22d3ee 100%)', textColor: '#a5f3fc' },
+  ];
+
+  function getCorApp(app, idx) {
+    if (app.color_primary) {
+      return { color: app.color_primary, grad: `linear-gradient(135deg, ${app.color_primary} 0%, ${app.color_primary}cc 100%)`, textColor: app.color_primary };
+    }
+    return PALETA[idx % PALETA.length];
+  }
+
+  // ─────────────────────────────────────────────
+  // Renderizar secções de apps dinamicamente
+  // ─────────────────────────────────────────────
+  function renderApps(apps) {
+    const container = document.getElementById('appsContainer');
+    container.innerHTML = apps.map((app, i) => {
+      const cor = getCorApp(app, i);
+      const isReverse = i % 2 === 1 ? 'style="direction:rtl;"' : '';
+      const reverseChild = i % 2 === 1 ? 'style="direction:ltr;"' : '';
+      const badge = app.badge || '●';
+      const title = app.title || app.app.toUpperCase();
+      const subtitle = app.subtitle || title;
+      const desc = app.description || 'Ferramenta profissional para o teu negócio.';
+
+      return `
+      <section id="${app.app}" class="dyn-app-section">
+        <div class="dyn-app-layout" ${isReverse}>
+          <div ${reverseChild}>
+            <div class="section-tag" style="background:${cor.color}22;color:${cor.textColor};border:1px solid ${cor.color}44;margin-bottom:16px;">
+              ${badge} ${title}
+            </div>
+            <h2 class="app-title">${subtitle}</h2>
+            <p class="app-desc">${desc}</p>
+            <div class="app-actions" style="margin-top:8px;">
+              <a href="produto.html?app=${app.app}" class="btn-app-primary"
+                style="background:${cor.grad};box-shadow:0 8px 28px ${cor.color}44;">
+                Saber mais →
+              </a>
+              <a href="checkout.html?app=${app.app}&plan=annual" class="btn-app-ghost"
+                style="color:${cor.textColor};border:1px solid ${cor.color}44;">
+                Comprar agora
+              </a>
+            </div>
+          </div>
+          <div ${reverseChild}>
+            <div class="dyn-app-visual-placeholder">
+              <span style="font-size:3.5rem;">${badge}</span>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────
+  // Renderizar pills do hero
+  // ─────────────────────────────────────────────
+  function renderPills(apps) {
+    const pills = document.getElementById('appPills');
+    if (!pills) return;
+    pills.innerHTML = apps.map((app, i) => {
+      const cor = getCorApp(app, i);
+      const badge = app.badge || '●';
+      const title = app.title || app.app.toUpperCase();
+      return `<a href="#${app.app}" class="app-pill"
+        style="color:${cor.textColor};border-color:${cor.color}44;background:${cor.color}18;">
+        ${badge} ${title}
+      </a>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────
+  // Renderizar cards de preço
+  // ─────────────────────────────────────────────
+  function renderPrecos(apps) {
+    const container = document.getElementById('precosContainer');
+    if (!container) return;
+    container.innerHTML = apps.map((app, i) => {
+      const cor = getCorApp(app, i);
+      const badge = app.badge || '●';
+      const title = app.title || app.app.toUpperCase();
+      const priceFrom = app.price_from || '—';
+      const pricePeriod = app.price_period || '/ano';
+      const planName = app.plan_name || 'Starter';
+      const planDesc = app.plan_desc || 'Plano base com todas as funcionalidades essenciais';
+
+      return `
+      <div class="pricing-card" style="border-color:rgba(255,255,255,0.07);">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${cor.grad};"></div>
+        <div class="pc-app-badge" style="color:${cor.textColor};background:${cor.color}18;border:1px solid ${cor.color}33;">
+          ${badge} ${title}
+        </div>
+        <div class="pc-title">${planName}</div>
+        <div class="pc-desc">${planDesc}</div>
+        <div class="pc-price">
+          <span class="pc-from">desde</span>
+          <span class="pc-amount" style="background:${cor.grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${priceFrom}</span>
+          <span class="pc-period">${pricePeriod}</span>
+        </div>
+        <a href="produto.html?app=${app.app}#precos" class="pc-cta"
+          style="background:${cor.grad};box-shadow:0 6px 20px ${cor.color}33;">
+          Ver todos os planos →
+        </a>
+      </div>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────
+  // Actualizar links da navbar e footer
+  // ─────────────────────────────────────────────
+  function renderNavLinks(apps) {
+    const navEl = document.getElementById('navAppsLinks');
+    const footerEl = document.getElementById('footerLinks');
+    if (navEl) {
+      navEl.innerHTML = apps.map(app =>
+        `<a href="#${app.app}">${app.title || app.app.toUpperCase()}</a>`
+      ).join('');
+    }
+    if (footerEl) {
+      footerEl.innerHTML = apps.map(app =>
+        `<a href="#${app.app}">${app.title || app.app.toUpperCase()}</a>`
+      ).join('') + `<a href="admin.html">Admin</a>`;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Fallback estático: exibe as 3 apps base
+  // ─────────────────────────────────────────────
+  function mostrarAppsFallback() {
+    document.getElementById('appsLoading').style.display = 'none';
+    document.getElementById('appsFallback').style.display = 'block';
+    // pills e nav já têm o fallback estático no HTML
+  }
+
+  // ─────────────────────────────────────────────
+  // Carregamento principal
+  // ─────────────────────────────────────────────
+  async function carregarApps() {
+    if (!WORKER_URL) {
+      mostrarAppsFallback();
+      return;
+    }
+    try {
+      const r = await fetch(WORKER_URL + '/api/cms/landings');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      const apps = (d.data || d || []).filter(a => a.active !== false);
+
+      if (!apps.length) {
+        mostrarAppsFallback();
+        return;
+      }
+
+      renderApps(apps);
+      renderPills(apps);
+      renderPrecos(apps);
+      renderNavLinks(apps);
+
+      // actualizar contagem no hero
+      const statEl = document.getElementById('statAppsCount');
+      if (statEl) statEl.textContent = apps.length;
+
+    } catch(e) {
+      console.warn('CMS loader: fallback estático activado.', e);
+      mostrarAppsFallback();
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Hub CMS (título/badge do index)
+  // ─────────────────────────────────────────────
+  async function carregarHub() {
     if (!WORKER_URL) return;
     try {
       const r = await fetch(WORKER_URL + '/api/cms/landing/hub');
@@ -554,16 +766,23 @@
         const cta = document.querySelector('.nav-cta');
         if (cta) { cta.textContent = cfg.cta_text; cta.href = cfg.cta_url; }
       }
-    } catch(e) {} // fallback silencioso ao conteúdo estático
-  })();
+    } catch(e) {} // fallback silencioso
+  }
 
-  // Smooth scroll
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const t = document.querySelector(a.getAttribute('href'));
-      if (t) { e.preventDefault(); window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 80, behavior:'smooth' }); }
-    });
+  // ─────────────────────────────────────────────
+  // Inicialização
+  // ─────────────────────────────────────────────
+  carregarApps();
+  carregarHub();
+
+  // Smooth scroll (delegado para suportar elementos dinâmicos)
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 80, behavior:'smooth' }); }
   });
+
   window.addEventListener('scroll', () => {
     document.querySelector('nav').style.background = scrollY > 40 ? 'rgba(10,15,30,0.97)' : 'rgba(10,15,30,0.88)';
   });

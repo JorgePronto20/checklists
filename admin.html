@@ -113,6 +113,11 @@
   .mini-chart{height:60px;display:flex;align-items:flex-end;gap:4px;padding:8px 0;}
   .mini-bar{flex:1;background:rgba(37,99,235,0.5);border-radius:3px 3px 0 0;min-height:4px;transition:height .5s;}
   .mini-bar:hover{background:var(--primary);}
+
+  /* THEME BUTTONS */
+  .theme-btn{padding:6px 14px;border:2px solid transparent;border-radius:6px;color:#fff;font-size:0.8rem;font-weight:600;cursor:pointer;transition:transform .1s,border-color .1s;}
+  .theme-btn:hover{transform:scale(1.05);}
+  .theme-btn.selected{border-color:#fff;transform:scale(1.08);}
 </style>
 </head>
 <body>
@@ -399,6 +404,29 @@
                   <input type="checkbox" id="editActive" style="width:18px;height:18px;accent-color:var(--primary);">
                   <span style="font-size:0.85rem;font-weight:600;" id="activeLabel">Activa</span>
                 </label>
+              </div>
+            </div>
+
+            <!-- COR / TEMA -->
+            <div class="section-card" style="background:var(--dark);margin-bottom:12px;">
+              <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🎨 Cor / Tema da Landing</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                <button type="button" class="theme-btn" data-color="#2563eb" data-name="azul"     style="background:#2563eb" onclick="selectTheme('#2563eb','azul')">Azul</button>
+                <button type="button" class="theme-btn" data-color="#7c3aed" data-name="roxo"     style="background:#7c3aed" onclick="selectTheme('#7c3aed','roxo')">Roxo</button>
+                <button type="button" class="theme-btn" data-color="#059669" data-name="verde"    style="background:#059669" onclick="selectTheme('#059669','verde')">Verde</button>
+                <button type="button" class="theme-btn" data-color="#dc2626" data-name="vermelho" style="background:#dc2626" onclick="selectTheme('#dc2626','vermelho')">Vermelho</button>
+                <button type="button" class="theme-btn" data-color="#ea580c" data-name="laranja"  style="background:#ea580c" onclick="selectTheme('#ea580c','laranja')">Laranja</button>
+                <button type="button" class="theme-btn" data-color="#db2777" data-name="rosa"     style="background:#db2777" onclick="selectTheme('#db2777','rosa')">Rosa</button>
+                <button type="button" class="theme-btn" data-color="#475569" data-name="cinzento" style="background:#475569" onclick="selectTheme('#475569','cinzento')">Cinzento</button>
+                <button type="button" class="theme-btn" data-color="#0891b2" data-name="ciano"    style="background:#0891b2" onclick="selectTheme('#0891b2','ciano')">Ciano</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <label style="font-size:0.85rem;color:#94a3b8;">Cor personalizada:</label>
+                <input type="color" id="editColorPrimary" value="#2563eb"
+                       onchange="selectTheme(this.value,'custom')"
+                       style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;">
+                <span id="editColorLabel" style="font-size:0.85rem;color:#94a3b8;">azul</span>
+                <div id="colorPreview" style="width:80px;height:28px;border-radius:6px;background:#2563eb;transition:background 0.2s;"></div>
               </div>
             </div>
 
@@ -935,6 +963,15 @@ function changeAdminPass() {
 }
 
 // === LANDINGS CMS ===
+function selectTheme(color, name) {
+  document.getElementById('editColorPrimary').value = color;
+  document.getElementById('editColorLabel').textContent = name;
+  document.getElementById('colorPreview').style.background = color;
+  document.querySelectorAll('.theme-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.color === color);
+  });
+}
+
 const CMS_DEFAULTS = {
   checklists: { badge:'Plataforma Operacional', title:'Gestão Operacional para Equipas', subtitle:'Centraliza todas as checklists da tua operação. Controla abertura, fecho e auditorias com alertas automáticos.', hero_image:'', features:['Checklists de abertura, recorrentes e fecho','Alertas automáticos quando prazo é ultrapassado','Captura de fotos e vídeos directamente na app','Gestão de colaboradores com PIN por operador'], plans:[{name:'Starter',price:19,period:'ano',desc:'1 loja'},{name:'Business',price:49,period:'ano',desc:'10 lojas'},{name:'Enterprise',price:99,period:'ano',desc:'Ilimitadas'}], faq:[{q:'Funciona sem instalar?',a:'Sim, 100% web.'},{q:'A chave expira?',a:'Planos anuais renovam uma vez por ano. Existe opção Lifetime.'}], cta_text:'Começar agora', cta_url:'checkout.html?app=checklists&plan=annual', active:true },
   faturalite: { badge:'Faturação Inteligente', title:'Faturação Simples e Rápida', subtitle:'Emite e gere faturas com OCR automático, QR Code e backup seguro.', hero_image:'', features:['Leitura automática por OCR','QR Code em cada fatura','Cálculo automático de IVA','Backup exportável em JSON'], plans:[{name:'Standard',price:0,period:'ano',desc:'A definir'}], faq:[], cta_text:'Começar agora', cta_url:'checkout.html?app=faturalite&plan=annual', active:true },
@@ -1011,6 +1048,10 @@ function editLanding(app) {
     renderFeaturesList(cfg.features || []);
     renderPlansList(cfg.plans || []);
     renderFaqList(cfg.faq || []);
+    // Cor / Tema
+    const cor = cfg.color_primary || '#2563eb';
+    const tema = cfg.color_theme || 'azul';
+    selectTheme(cor, tema);
   };
 
   if (apiUrl) {
@@ -1083,6 +1124,8 @@ async function saveLanding() {
   cmsCurrentConfig.hero_image = document.getElementById('editHeroImage').value;
   cmsCurrentConfig.cta_text = document.getElementById('editCtaText').value;
   cmsCurrentConfig.cta_url  = document.getElementById('editCtaUrl').value;
+  cmsCurrentConfig.color_primary = document.getElementById('editColorPrimary').value;
+  cmsCurrentConfig.color_theme   = document.getElementById('editColorLabel').textContent;
 
   try {
     const r = await fetch(apiUrl + '/api/cms/landing/' + app, {
@@ -1156,6 +1199,8 @@ async function criarNovaLanding() {
   }
   cfg.app = novoId;
   cfg.title = titulo;
+  cfg.color_primary = document.getElementById('editColorPrimary')?.value || '#2563eb';
+  cfg.color_theme   = document.getElementById('editColorLabel')?.textContent || 'azul';
 
   try {
     const r = await fetch(apiUrl + '/api/cms/landing/' + novoId, {
