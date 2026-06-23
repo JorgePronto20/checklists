@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Picar Ponto — QR Code</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0f1e;
+      --card:      #111827;
+      --border:    #1e2d4a;
+      --accent:    #3b82f6;
+      --accent2:   #06b6d4;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --green:     #22c55e;
+      --red:       #ef4444;
+      --orange:    #f97316;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── ECRÃ DE SELECÇÃO DE LOJA ── */
+    #store-select-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    #store-select-screen h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    #store-select-screen h1 span { color: var(--accent); }
+
+    #store-select-screen p { color: var(--muted); font-size: 1rem; }
+
+    #store-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .store-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+      text-align: center;
+    }
+
+    .store-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .store-card .sc-icon { font-size: 2rem; }
+    .store-card .sc-name { font-size: 1rem; font-weight: 600; margin-top: .5rem; }
+    .store-card .sc-id { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+
+    #store-select-screen .loading-msg {
+      color: var(--muted);
+      font-size: .9rem;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ── ECRÃ PRINCIPAL QR ── */
+    #qr-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 1.5rem;
+      gap: 1.2rem;
+      position: relative;
+    }
+
+    /* gradiente de fundo subtil */
+    #qr-screen::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(59,130,246,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 90%, rgba(6,182,212,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* logo / título */
+    .app-title {
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .app-title .check { color: var(--accent); }
+
+    /* nome da loja */
+    .store-name {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: var(--accent2);
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* container QR */
+    .qr-wrapper {
+      background: #fff;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow:
+        0 0 0 1px rgba(59,130,246,.3),
+        0 8px 40px rgba(0,0,0,.6),
+        0 0 60px rgba(59,130,246,.15);
+      position: relative;
+      transition: opacity .4s;
+    }
+
+    .qr-wrapper.refreshing { opacity: .35; }
+
+    #qr-canvas {
+      display: block;
+      width: clamp(240px, 35vmin, 340px) !important;
+      height: clamp(240px, 35vmin, 340px) !important;
+    }
+
+    /* spinner de refresh sobre o QR */
+    .qr-spinner {
+      display: none;
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      background: rgba(10,15,30,.55);
+    }
+
+    .qr-wrapper.refreshing .qr-spinner { display: flex; }
+
+    .spinner-ring {
+      width: 56px; height: 56px;
+      border: 5px solid rgba(59,130,246,.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    /* instrução */
+    .instruction {
+      font-size: clamp(.85rem, 2vw, 1.05rem);
+      color: var(--muted);
+      text-align: center;
+      max-width: 380px;
+      line-height: 1.5;
+    }
+
+    /* countdown */
+    .countdown-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .countdown-svg { flex-shrink: 0; }
+
+    .countdown-circle-bg { fill: none; stroke: var(--border); stroke-width: 5; }
+    .countdown-circle-fg {
+      fill: none;
+      stroke-width: 5;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke-dashoffset .9s linear, stroke .5s;
+    }
+
+    .countdown-text {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .countdown-text .cd-num {
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: block;
+      text-align: center;
+      line-height: 1;
+    }
+
+    /* relógio */
+    .clock-block { text-align: center; }
+    .clock-time {
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: .08em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .clock-date {
+      font-size: clamp(.75rem, 1.8vw, 1rem);
+      color: var(--muted);
+      margin-top: .3rem;
+      letter-spacing: .06em;
+      text-transform: capitalize;
+    }
+
+    /* status bar */
+    #status-bar {
+      position: fixed;
+      bottom: 1.2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .45rem 1.2rem;
+      font-size: .78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      max-width: 92vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #status-bar .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--green);
+    }
+
+    #status-bar.error .dot { background: var(--red); animation: pulse 1s ease-in-out infinite; }
+    #status-bar.warn  .dot { background: var(--orange); }
+
+    /* mensagem de erro grande */
+    #error-overlay {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      text-align: center;
+    }
+
+    #error-overlay.active { display: flex; }
+
+    .err-icon { font-size: 3rem; }
+    .err-title { font-size: 1.4rem; font-weight: 700; color: var(--red); }
+    .err-msg   { color: var(--muted); font-size: .9rem; max-width: 400px; }
+    .err-retry { font-size: .85rem; color: var(--muted); }
+
+    /* botão voltar */
+    #btn-back {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.2rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: .45rem .9rem;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+      display: none;
+    }
+
+    #btn-back:hover { color: var(--text); border-color: var(--accent); }
+
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes pulse  { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     ECRÃ 1 — Selecção de loja
+═══════════════════════════════════════════ -->
+<div id="store-select-screen">
+  <h1>☑ <span>CHECKLISTS</span> — Picar Ponto</h1>
+  <p>Selecciona a loja para activar o ecrã de QR Code</p>
+  <div id="store-list">
+    <p class="loading-msg">A carregar lojas…</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ECRÃ 2 — QR Code dinâmico
+═══════════════════════════════════════════ -->
+<div id="qr-screen">
+
+  <!-- Erro de ligação -->
+  <div id="error-overlay">
+    <div class="err-icon">📡</div>
+    <div class="err-title">Sem ligação ao servidor</div>
+    <div class="err-msg" id="err-detail">Não foi possível obter o QR Code. Verifica a ligação à internet e o estado do Worker.</div>
+    <div class="err-retry" id="err-retry-msg">A tentar de novo…</div>
+  </div>
+
+  <!-- Conteúdo normal -->
+  <div id="qr-content" style="display:flex;flex-direction:column;align-items:center;gap:1.1rem;">
+    <div class="app-title">
+      <span class="check">☑</span> CHECKLISTS <span style="color:var(--muted);font-weight:400;">— Picar Ponto</span>
+    </div>
+
+    <div class="store-name" id="store-label">— — —</div>
+
+    <div class="qr-wrapper" id="qr-wrapper">
+      <canvas id="qr-canvas"></canvas>
+      <div class="qr-spinner">
+        <div class="spinner-ring"></div>
+      </div>
+    </div>
+
+    <div class="instruction">
+      📱 Aponta a câmara da app para fazer a picagem
+    </div>
+
+    <!-- Countdown circular -->
+    <div class="countdown-row">
+      <svg class="countdown-svg" width="64" height="64" viewBox="0 0 64 64">
+        <circle class="countdown-circle-bg" cx="32" cy="32" r="27"/>
+        <circle class="countdown-circle-fg" id="cd-arc" cx="32" cy="32" r="27"
+                stroke="var(--accent)"
+                stroke-dasharray="169.6"
+                stroke-dashoffset="0"/>
+      </svg>
+      <div class="countdown-text">
+        <span class="cd-num" id="cd-num">60</span>
+        segundos
+      </div>
+    </div>
+
+    <!-- Relógio -->
+    <div class="clock-block">
+      <div class="clock-time" id="clock-time">00:00:00</div>
+      <div class="clock-date" id="clock-date"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Status bar (sempre visível no ecrã QR) -->
+<div id="status-bar" style="display:none;">
+  <span class="dot"></span>
+  <span id="status-msg">A inicializar…</span>
+</div>
+
+<!-- Botão voltar -->
+<button id="btn-back" onclick="goBack()">← Voltar</button>
+
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════ */
+const WORKER_URL = 'https://checklists-api.jorgepronto20.workers.dev';
+const QR_TTL     = 60;   // segundos
+const RETRY_ERR  = 10;   // segundos para retry em caso de erro
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let currentLojaId   = null;
+let countdownTimer  = null;
+let clockTimer      = null;
+let retryTimer      = null;
+let remainingSecs   = QR_TTL;
+const CIRC          = 2 * Math.PI * 27;   // circunferência do arco SVG
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+(async function init() {
+  const params  = new URLSearchParams(location.search);
+  const lojaId  = params.get('loja');
+
+  startClock();
+
+  if (lojaId) {
+    currentLojaId = lojaId;
+    showQRScreen();
+    loadStoreLabel(lojaId);
+    fetchAndDisplayQR(lojaId);
+  } else {
+    await loadStoreList();
+  }
+})();
+
+/* ═══════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════ */
+function startClock() {
+  function tick() {
+    const now  = new Date();
+    const hms  = now.toLocaleTimeString('pt-PT', { hour12: false });
+    const date = now.toLocaleDateString('pt-PT', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    document.getElementById('clock-time').textContent = hms;
+    document.getElementById('clock-date').textContent = date;
+  }
+  tick();
+  clockTimer = setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════
+   ECRÃ SELECÇÃO DE LOJA
+═══════════════════════════════════════════ */
+async function loadStoreList() {
+  const list = document.getElementById('store-list');
+  try {
+    const res   = await fetch(`${WORKER_URL}/api/lojas`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data  = await res.json();
+    const lojas = data.lojas || data.results || data || [];
+
+    if (!lojas.length) {
+      list.innerHTML = '<p style="color:var(--muted);">Nenhuma loja encontrada. Usa o parâmetro ?loja=1 na URL.</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    lojas.forEach(loja => {
+      const id   = loja.id || loja.loja_id;
+      const nome = loja.nome || loja.name || `Loja ${id}`;
+      const card = document.createElement('div');
+      card.className = 'store-card';
+      card.innerHTML = `
+        <div class="sc-icon">🏪</div>
+        <div class="sc-name">${esc(nome)}</div>
+        <div class="sc-id">ID: ${esc(String(id))}</div>
+      `;
+      card.onclick = () => selectStore(id, nome);
+      list.appendChild(card);
+    });
+  } catch (e) {
+    list.innerHTML = `
+      <p style="color:var(--red);">Erro ao carregar lojas: ${esc(e.message)}</p>
+      <p style="color:var(--muted);font-size:.85rem;margin-top:.5rem;">
+        Podes aceder directamente por URL: <code style="color:var(--accent);">qr-display.html?loja=1</code>
+      </p>
+    `;
+  }
+}
+
+function selectStore(lojaId, nomeHint) {
+  currentLojaId = String(lojaId);
+  history.replaceState(null, '', `?loja=${encodeURIComponent(currentLojaId)}`);
+  showQRScreen();
+  document.getElementById('store-label').textContent = nomeHint || `Loja ${currentLojaId}`;
+  fetchAndDisplayQR(currentLojaId);
+}
+
+function goBack() {
+  clearTimers();
+  currentLojaId = null;
+  history.replaceState(null, '', location.pathname);
+  document.getElementById('qr-screen').style.display   = 'none';
+  document.getElementById('status-bar').style.display  = 'none';
+  document.getElementById('btn-back').style.display    = 'none';
+  document.getElementById('store-select-screen').style.display = 'flex';
+  loadStoreList();
+}
+
+/* ═══════════════════════════════════════════
+   ECRÃ QR
+═══════════════════════════════════════════ */
+function showQRScreen() {
+  document.getElementById('store-select-screen').style.display = 'none';
+  document.getElementById('qr-screen').style.display           = 'flex';
+  document.getElementById('status-bar').style.display          = 'flex';
+  document.getElementById('btn-back').style.display            = 'block';
+}
+
+async function loadStoreLabel(lojaId) {
+  try {
+    const res  = await fetch(`${WORKER_URL}/api/lojas`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const lojas = data.lojas || data.results || data || [];
+    const loja  = lojas.find(l => String(l.id || l.loja_id) === String(lojaId));
+    if (loja) {
+      document.getElementById('store-label').textContent =
+        loja.nome || loja.name || `Loja ${lojaId}`;
+    } else {
+      document.getElementById('store-label').textContent = `Loja ${lojaId}`;
+    }
+  } catch (_) {
+    document.getElementById('store-label').textContent = `Loja ${lojaId}`;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   FETCH QR + RENDER
+═══════════════════════════════════════════ */
+async function fetchAndDisplayQR(lojaId) {
+  clearTimers();
+  setRefreshing(true);
+  hideError();
+
+  try {
+    const res = await fetch(`${WORKER_URL}/api/ponto/qr/${encodeURIComponent(lojaId)}`);
+    if (!res.ok) throw new Error(`Worker respondeu com HTTP ${res.status}`);
+    const data = await res.json();
+
+    const { token, lojaId: lid, expires, qrData } = data;
+
+    // qrData pode vir pronto do worker ou construímos aqui
+    const payload = qrData || JSON.stringify({ token, lojaId: lid || lojaId, t: expires });
+
+    await renderQR(payload);
+
+    setStatus('ok', `QR activo · Loja ${lojaId} · Token obtido`);
+    setRefreshing(false);
+
+    // calcula TTL real se o worker enviar `expires` (epoch ms)
+    let ttl = QR_TTL;
+    if (expires) {
+      const diff = Math.round((expires - Date.now()) / 1000);
+      if (diff > 0 && diff <= QR_TTL) ttl = diff;
+    }
+
+    startCountdown(ttl, () => fetchAndDisplayQR(lojaId));
+
+  } catch (err) {
+    setRefreshing(false);
+    showError(err.message);
+    setStatus('error', `Erro: ${err.message}`);
+    scheduleRetry(lojaId);
+  }
+}
+
+async function renderQR(text) {
+  const canvas = document.getElementById('qr-canvas');
+  const size   = canvas.offsetWidth || 280;
+
+  await QRCode.toCanvas(canvas, text, {
+    width:           size,
+    margin:          0,
+    color: {
+      dark:  '#000000',
+      light: '#ffffff'
+    },
+    errorCorrectionLevel: 'M'
+  });
+}
+
+/* ═══════════════════════════════════════════
+   COUNTDOWN
+═══════════════════════════════════════════ */
+function startCountdown(seconds, onExpire) {
+  remainingSecs = seconds;
+  updateCountdownUI(remainingSecs);
+
+  countdownTimer = setInterval(() => {
+    remainingSecs--;
+    updateCountdownUI(remainingSecs);
+
+    if (remainingSecs <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      onExpire();
+    }
+  }, 1000);
+}
+
+function updateCountdownUI(secs) {
+  const numEl = document.getElementById('cd-num');
+  const arcEl = document.getElementById('cd-arc');
+
+  numEl.textContent = Math.max(0, secs);
+
+  // cor do arco: verde→amarelo→vermelho
+  let color;
+  const pct = secs / QR_TTL;
+  if (pct > 0.5)      color = 'var(--green)';
+  else if (pct > 0.2) color = 'var(--orange)';
+  else                color = 'var(--red)';
+  arcEl.style.stroke = color;
+
+  // dashoffset: 0 = cheio, CIRC = vazio
+  const offset = CIRC * (1 - (Math.max(0, secs) / QR_TTL));
+  arcEl.style.strokeDashoffset = offset;
+}
+
+/* ═══════════════════════════════════════════
+   RETRY EM ERRO
+═══════════════════════════════════════════ */
+function scheduleRetry(lojaId) {
+  let countdown = RETRY_ERR;
+  const retryEl = document.getElementById('err-retry-msg');
+  retryEl.textContent = `A tentar de novo em ${countdown}s…`;
+
+  retryTimer = setInterval(() => {
+    countdown--;
+    retryEl.textContent = `A tentar de novo em ${countdown}s…`;
+    if (countdown <= 0) {
+      clearInterval(retryTimer);
+      retryTimer = null;
+      fetchAndDisplayQR(lojaId);
+    }
+  }, 1000);
+}
+
+/* ═══════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════ */
+function setRefreshing(val) {
+  document.getElementById('qr-wrapper').classList.toggle('refreshing', val);
+}
+
+function showError(msg) {
+  document.getElementById('err-detail').textContent =
+    msg || 'Erro desconhecido. Verifica a ligação ao Worker.';
+  document.getElementById('error-overlay').classList.add('active');
+  document.getElementById('qr-content').style.display = 'none';
+}
+
+function hideError() {
+  document.getElementById('error-overlay').classList.remove('active');
+  document.getElementById('qr-content').style.display = 'flex';
+}
+
+function setStatus(type, msg) {
+  const bar = document.getElementById('status-bar');
+  document.getElementById('status-msg').textContent = msg;
+  bar.className = type === 'error' ? 'error' : type === 'warn' ? 'warn' : '';
+}
+
+function clearTimers() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  if (retryTimer)     { clearInterval(retryTimer);     retryTimer     = null; }
+}
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* visibilidade — se o separador ficar em background e voltar,
+   re-sincroniza o QR se já expirou */
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentLojaId && remainingSecs <= 0) {
+    fetchAndDisplayQR(currentLojaId);
+  }
+});
+</script>
+</body>
+</html>

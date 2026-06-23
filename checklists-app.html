@@ -459,6 +459,9 @@
         <button class="nav-item" onclick="navigate('checklists', this)">
           <span class="nav-icon">📋</span> Histórico
         </button>
+        <button class="nav-item" onclick="navigate('folhaponto', this)">
+          <span class="nav-icon">📅</span> Folha de Ponto
+        </button>
         <button class="nav-item" onclick="navigate('alertas', this)" id="navAlertas">
           <span class="nav-icon">🔔</span> Alertas
           <span class="nav-badge" id="alertasBadge" style="display:none">0</span>
@@ -470,6 +473,9 @@
         </button>
         <button class="nav-item" onclick="navigate('colaboradores', this)">
           <span class="nav-icon">👥</span> Colaboradores
+        </button>
+        <button class="nav-item" onclick="navigate('lojas', this)">
+          <span class="nav-icon">🏪</span> Lojas
         </button>
         <button class="nav-item" onclick="navigate('credenciais', this)">
           <span class="nav-icon">🔑</span> Credenciais
@@ -800,6 +806,97 @@
           </div>
         </div>
 
+        <!-- LOJAS -->
+        <div class="page" id="page-lojas">
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">🏪 Lojas</div>
+                <div class="section-subtitle">Cada loja tem o seu QR Code dinâmico para picagem de ponto.</div>
+              </div>
+              <button class="btn btn-primary" onclick="openLojaModal()">+ Nova Loja</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Nome</th><th>Email RH</th><th>Estado</th><th>Acções</th></tr>
+                </thead>
+                <tbody id="lojasBody">
+                  <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">A carregar lojas...</div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOLHA DE PONTO -->
+        <div class="page" id="page-folhaponto">
+          <!-- Filtros -->
+          <div class="section-card" style="margin-bottom:16px;">
+            <div class="section-header">
+              <div class="section-title">📅 Folha de Ponto</div>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+              <div class="form-group" style="margin:0; flex:1; min-width:160px;">
+                <label class="form-label">Colaborador</label>
+                <select class="form-control" id="filtroFolhaColab">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0; min-width:130px;">
+                <label class="form-label">Mês</label>
+                <select class="form-control" id="filtroFolhaMes">
+                  <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+                  <option value="3">Março</option><option value="4">Abril</option>
+                  <option value="5">Maio</option><option value="6">Junho</option>
+                  <option value="7">Julho</option><option value="8">Agosto</option>
+                  <option value="9">Setembro</option><option value="10">Outubro</option>
+                  <option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0; min-width:100px;">
+                <label class="form-label">Ano</label>
+                <select class="form-control" id="filtroFolhaAno"></select>
+              </div>
+              <div style="padding-bottom:1px;">
+                <button class="btn btn-primary" onclick="loadFolhaPonto()">🔍 Carregar</button>
+              </div>
+              <div style="padding-bottom:1px;" id="btnEnviarFolhaWrap" style="display:none;">
+                <button class="btn btn-success" onclick="enviarFolhas()" id="btnEnviarFolha">📧 Enviar por Email</button>
+              </div>
+            </div>
+          </div>
+          <!-- Tabela de resultados -->
+          <div class="section-card" style="margin-bottom:16px;">
+            <div class="section-header">
+              <div class="section-title">Registos de Ponto</div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Colaborador</th><th>Data</th><th>Entrada</th><th>Saída</th><th>Total Horas</th><th>Local / Loja</th></tr>
+                </thead>
+                <tbody id="folhaPontoBody">
+                  <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">Selecione um período e clique em "Carregar"</div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="folhaPontoTotais" style="padding:12px 0 4px; font-size:0.85rem; color:var(--text-muted);"></div>
+          </div>
+          <!-- Histórico de envios -->
+          <div class="section-card">
+            <div class="section-header" style="cursor:pointer;" onclick="toggleHistoricoEnvios()">
+              <div class="section-title">📬 Histórico de Envios</div>
+              <span id="historicoEnviosToggle" style="color:var(--text-muted); font-size:0.85rem;">▼ Expandir</span>
+            </div>
+            <div id="historicoEnviosContent" style="display:none;">
+              <div class="activity-list" id="logEnviosList">
+                <div class="empty-state"><div class="empty-icon">📬</div><div class="empty-text">Sem envios registados</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- CONFIG -->
         <div class="page" id="page-config">
           <div class="grid-2">
@@ -1057,6 +1154,36 @@
   </div>
 </div>
 
+<!-- Modal Loja -->
+<div class="modal-overlay" id="modalLoja">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalLojaTitle">Nova Loja</div>
+      <button class="modal-close" onclick="closeModal('modalLoja')">✕</button>
+    </div>
+    <input type="hidden" id="lojaEditId">
+    <div class="form-group">
+      <label class="form-label">Nome da Loja *</label>
+      <input type="text" class="form-control" id="lojaNome" placeholder="Ex: Loja Centro Lisboa">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email RH Padrão</label>
+      <input type="email" class="form-control" id="lojaEmailRh" placeholder="rh@empresa.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-control" id="lojaAtiva">
+        <option value="1">Activa</option>
+        <option value="0">Inactiva</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalLoja')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarLoja()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- CAMERA OVERLAY -->
 <div id="cameraOverlay" class="camera-overlay">
   <div class="camera-header">
@@ -1256,14 +1383,14 @@ function navigate(page, el) {
   if (el) el.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n => { if (n.onclick?.toString().includes("'"+page+"'")) n.classList.add('active'); });
   currentPage = page;
-  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', credenciais:'Credenciais', atribuicoes:'Atribuições', atividade:'Atividade', config:'Configurações' };
+  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', credenciais:'Credenciais', atribuicoes:'Atribuições', atividade:'Atividade', config:'Configurações', lojas:'Lojas', folhaponto:'Folha de Ponto' };
   document.getElementById('pageTitle').textContent = titles[page] || page;
   closeSidebar();
   refreshCurrentPage();
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, credenciais: loadCredenciais, atribuicoes: loadAtribuicoes };
+  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, credenciais: loadCredenciais, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -2450,6 +2577,341 @@ function closeCamera() {
   stopStream();
   document.getElementById('cameraOverlay').classList.remove('open');
   document.getElementById('cameraStream').srcObject = null;
+}
+
+// ===================== LOJAS =====================
+function loadLojas() {
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/lojas', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(data => renderLojasTabela(data.results || data))
+    .catch(() => renderLojasTabela(DB.lojas || []));
+  } else {
+    renderLojasTabela(DB.lojas || []);
+  }
+}
+
+function renderLojasTabela(list) {
+  const tbody = document.getElementById('lojasBody');
+  if (!tbody) return;
+  if (!list || !list.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">Sem lojas criadas. Clique em "+ Nova Loja" para começar.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(l => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(37,99,235,0.2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🏪</div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;">${escHtml(l.nome || l.name || '')}</div>
+            <div style="font-size:0.74rem;color:var(--text-muted);">ID: ${l.id}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-size:0.83rem;color:var(--text-muted);">${escHtml(l.email_rh_default || l.email_rh || '—')}</td>
+      <td>${(l.ativa !== undefined ? l.ativa : l.ativo) ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-neutral">Inactiva</span>'}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openLojaModal(${l.id})" title="Editar">✏️</button>
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="verQRLoja(${l.id})" title="Ver QR Code">📱</button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="eliminarLoja(${l.id})" title="Eliminar">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openLojaModal(id) {
+  const loja = id ? (DB.lojas || []).find(x => x.id == id) : null;
+  document.getElementById('modalLojaTitle').textContent = loja ? 'Editar Loja' : 'Nova Loja';
+  document.getElementById('lojaEditId').value = loja ? loja.id : '';
+  document.getElementById('lojaNome').value = loja ? (loja.nome || loja.name || '') : '';
+  document.getElementById('lojaEmailRh').value = loja ? (loja.email_rh_default || loja.email_rh || '') : '';
+  document.getElementById('lojaAtiva').value = (loja && (loja.ativa !== undefined ? loja.ativa : loja.ativo) == 0) ? '0' : '1';
+  document.getElementById('modalLoja').classList.add('open');
+}
+
+function salvarLoja() {
+  const nome = document.getElementById('lojaNome').value.trim();
+  if (!nome) { toast('Nome da loja obrigatório', 'error'); return; }
+  const editId = document.getElementById('lojaEditId').value;
+  const payload = {
+    nome,
+    email_rh_default: document.getElementById('lojaEmailRh').value.trim(),
+    ativa: parseInt(document.getElementById('lojaAtiva').value)
+  };
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    const method = editId ? 'PUT' : 'POST';
+    const url = DB.config.apiUrl + '/api/lojas' + (editId ? '/' + editId : '');
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(() => { toast('Loja guardada', 'success'); closeModal('modalLoja'); loadLojas(); })
+    .catch(() => toast('Erro ao guardar loja', 'error'));
+  } else {
+    if (!DB.lojas) DB.lojas = [];
+    if (editId) {
+      const idx = DB.lojas.findIndex(x => x.id == editId);
+      if (idx >= 0) DB.lojas[idx] = { ...DB.lojas[idx], ...payload };
+    } else {
+      DB.lojas.push({ id: Date.now(), ...payload, criado_em: new Date().toISOString() });
+    }
+    saveToStorage();
+    toast('Loja guardada (demo local)', 'success');
+    closeModal('modalLoja');
+    loadLojas();
+  }
+}
+
+function eliminarLoja(id) {
+  if (!confirm('Eliminar esta loja? Esta acção não pode ser revertida.')) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/lojas/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(() => { toast('Loja eliminada', 'success'); loadLojas(); })
+    .catch(() => toast('Erro ao eliminar loja', 'error'));
+  } else {
+    DB.lojas = (DB.lojas || []).filter(x => x.id != id);
+    saveToStorage();
+    toast('Loja eliminada', 'success');
+    loadLojas();
+  }
+}
+
+function verQRLoja(id) {
+  const apiUrl = DB.config.apiUrl || 'https://checklists-api.jorgepronto20.workers.dev';
+  window.open(apiUrl.replace(/\/+$/, '') + '/qr-display.html?loja=' + id, '_blank');
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===================== FOLHA DE PONTO =====================
+function initFolhaPonto() {
+  // Preencher selects na primeira vez que a página abre
+  const selColab = document.getElementById('filtroFolhaColab');
+  const selAno = document.getElementById('filtroFolhaAno');
+  if (!selColab || !selAno) return;
+
+  // Colaboradores
+  selColab.innerHTML = '<option value="">Todos</option>' +
+    DB.colaboradores.map(c => `<option value="${c.id}">${escHtml(c.nome)}</option>`).join('');
+
+  // Anos: últimos 3 anos incluindo actual
+  const anoAtual = new Date().getFullYear();
+  selAno.innerHTML = [anoAtual, anoAtual-1, anoAtual-2].map(a =>
+    `<option value="${a}"${a===anoAtual?' selected':''}>${a}</option>`
+  ).join('');
+
+  // Mês actual
+  const mesAtual = new Date().getMonth() + 1;
+  document.getElementById('filtroFolhaMes').value = mesAtual;
+
+  // Mostrar botão Enviar só se tiver admin_secret
+  const adminSecret = localStorage.getItem('admin_secret') || DB.config.adminSecret;
+  const btnWrap = document.getElementById('btnEnviarFolhaWrap');
+  if (btnWrap) btnWrap.style.display = adminSecret ? 'block' : 'none';
+}
+
+function loadFolhaPonto() {
+  const colabId = document.getElementById('filtroFolhaColab').value;
+  const mes = document.getElementById('filtroFolhaMes').value;
+  const ano = document.getElementById('filtroFolhaAno').value;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+
+  if (isLive) {
+    const params = new URLSearchParams({ mes, ano });
+    if (colabId) params.set('colaborador_id', colabId);
+    fetch(DB.config.apiUrl + '/api/ponto/mensal?' + params.toString(), {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(data => renderTabelaPonto(data.results || data))
+    .catch(() => { toast('Erro ao carregar dados de ponto', 'error'); renderTabelaPonto([]); });
+  } else {
+    // Modo demo: gerar dados de ponto a partir dos registos locais (pontos_registo inexistente, mostrar aviso)
+    const registos = DB.pontos_registo || [];
+    // Filtrar por mês/ano/colaborador
+    const filtrados = registos.filter(r => {
+      const d = new Date(r.criado_em || r.data_hora);
+      return d.getMonth()+1 == mes && d.getFullYear() == ano && (!colabId || r.colaborador_id == colabId);
+    });
+    renderTabelaPonto(filtrados);
+  }
+  // Carregar logs de envio
+  loadLogEnvios();
+}
+
+function renderTabelaPonto(registos) {
+  const tbody = document.getElementById('folhaPontoBody');
+  const totaisDiv = document.getElementById('folhaPontoTotais');
+  if (!tbody) return;
+
+  if (!registos || !registos.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">Sem registos para o período seleccionado</div></div></td></tr>';
+    if (totaisDiv) totaisDiv.innerHTML = '';
+    return;
+  }
+
+  // Agrupar por colaborador e data
+  const grupos = {};
+  registos.forEach(r => {
+    const colabId = r.colaborador_id;
+    const data = r.data || (r.data_hora ? r.data_hora.split('T')[0] : '—');
+    const key = colabId + '|' + data;
+    if (!grupos[key]) grupos[key] = { colabId, data, entradas: [], saidas: [], local: r.loja_nome || r.local || '—' };
+    if (r.tipo === 'entrada' || r.tipo === 'in') grupos[key].entradas.push(r.hora || r.hora_entrada || (r.data_hora ? r.data_hora.split('T')[1].substring(0,5) : '—'));
+    if (r.tipo === 'saida' || r.tipo === 'out') grupos[key].saidas.push(r.hora || r.hora_saida || (r.data_hora ? r.data_hora.split('T')[1].substring(0,5) : '—'));
+  });
+
+  // Se os dados já vêm pré-agrupados (API mensal)
+  const linhas = registos[0]?.entrada !== undefined ? registos : Object.values(grupos).map(g => ({
+    colaborador_id: g.colabId,
+    data: g.data,
+    entrada: g.entradas[0] || '—',
+    saida: g.saidas[0] || null,
+    loja_nome: g.local
+  }));
+
+  let totalMinutos = 0;
+  let countSemSaida = 0;
+
+  const html = linhas.map(r => {
+    const colab = DB.colaboradores.find(x => x.id == r.colaborador_id);
+    const nomColab = colab ? escHtml(colab.nome) : (escHtml(r.colaborador_nome) || '<span style="color:var(--text-muted)">N/D</span>');
+    const entrada = r.entrada || r.hora_entrada || '—';
+    const saida = r.saida || r.hora_saida || null;
+    const total = saida ? calcularHoras(entrada, saida) : null;
+    if (total !== null) totalMinutos += total.minutos;
+    const semSaida = !saida;
+    if (semSaida) countSemSaida++;
+    return `<tr>
+      <td style="font-size:0.85rem;font-weight:600;">${nomColab}</td>
+      <td style="font-size:0.82rem;">${r.data || '—'}</td>
+      <td style="font-family:monospace;font-size:0.85rem;color:var(--success);">${entrada}</td>
+      <td style="font-family:monospace;font-size:0.85rem;color:${semSaida?'var(--warning)':'var(--secondary)'};">
+        ${semSaida ? '<span title="Saída não registada">⚠️ —</span>' : saida}
+      </td>
+      <td style="font-family:monospace;font-size:0.85rem;">${total ? total.texto : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="font-size:0.8rem;color:var(--text-muted);">${escHtml(r.loja_nome || r.local || '—')}</td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = html;
+
+  const hTotal = Math.floor(totalMinutos / 60);
+  const mTotal = totalMinutos % 60;
+  totaisDiv.innerHTML = `
+    <div style="display:flex; gap:24px; flex-wrap:wrap; padding:8px 12px; background:rgba(37,99,235,0.08); border-radius:8px; border:1px solid rgba(37,99,235,0.2);">
+      <div><span style="color:var(--text-muted);">Total do mês:</span> <strong style="color:var(--primary);">${hTotal}h ${mTotal}m</strong></div>
+      <div><span style="color:var(--text-muted);">Registos:</span> <strong>${linhas.length}</strong></div>
+      ${countSemSaida > 0 ? `<div><span style="color:var(--warning);">⚠️ Saídas em falta:</span> <strong style="color:var(--warning);">${countSemSaida}</strong></div>` : ''}
+    </div>
+  `;
+}
+
+function calcularHoras(entrada, saida) {
+  if (!entrada || !saida || entrada === '—' || saida === '—') return null;
+  try {
+    const [h1, m1] = entrada.split(':').map(Number);
+    const [h2, m2] = saida.split(':').map(Number);
+    let minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (minutos < 0) minutos += 1440; // passou meia-noite
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    return { minutos, texto: horas + 'h ' + String(mins).padStart(2,'0') + 'm' };
+  } catch(e) { return null; }
+}
+
+function enviarFolhas() {
+  const adminSecret = localStorage.getItem('admin_secret') || DB.config.adminSecret;
+  if (!adminSecret) { toast('Admin Secret não configurado', 'error'); return; }
+  const apiUrl = DB.config.apiUrl || 'https://checklists-api.jorgepronto20.workers.dev';
+  const btn = document.getElementById('btnEnviarFolha');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ A enviar...'; }
+  fetch(apiUrl + '/api/cron/folha-mensal', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + adminSecret,
+      'Admin-Secret': adminSecret
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const total = data.total || data.count || '?';
+    toast('✅ ' + total + ' folha(s) enviada(s) por email', 'success');
+    loadLogEnvios();
+  })
+  .catch(() => toast('Erro ao enviar folhas', 'error'))
+  .finally(() => { if (btn) { btn.disabled = false; btn.textContent = '📧 Enviar por Email'; } });
+}
+
+function toggleHistoricoEnvios() {
+  const content = document.getElementById('historicoEnviosContent');
+  const toggle = document.getElementById('historicoEnviosToggle');
+  if (!content) return;
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  if (toggle) toggle.textContent = isOpen ? '▼ Expandir' : '▲ Recolher';
+  if (!isOpen) loadLogEnvios();
+}
+
+function loadLogEnvios() {
+  const container = document.getElementById('logEnviosList');
+  if (!container) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/atividade?tipo=CRON', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(data => {
+      const items = (data.results || data).filter(a =>
+        (a.descricao || a.description || '').toLowerCase().includes('folh') ||
+        (a.tipo || '').toUpperCase() === 'CRON'
+      );
+      renderLogEnvios(container, items);
+    })
+    .catch(() => renderLogEnvios(container, []));
+  } else {
+    const items = (DB.atividade || []).filter(a =>
+      (a.descricao || '').toLowerCase().includes('folh') ||
+      (a.tipo || '').toUpperCase() === 'CRON'
+    );
+    renderLogEnvios(container, items);
+  }
+}
+
+function renderLogEnvios(container, items) {
+  if (!items || !items.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📬</div><div class="empty-text">Sem envios registados</div></div>';
+    return;
+  }
+  const sorted = [...items].sort((a,b) => new Date(b.criado_em||b.created_at) - new Date(a.criado_em||a.created_at));
+  container.innerHTML = sorted.slice(0, 20).map(a => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${(a.erro||a.error)?'var(--danger)':'var(--success)'}"></div>
+      <div class="activity-body">
+        <div class="activity-desc">${escHtml(a.descricao || a.description || 'Envio de folha mensal')}</div>
+        <div class="activity-time">${formatDateTime(a.criado_em || a.created_at)}</div>
+      </div>
+      <span class="badge ${(a.erro||a.error)?'badge-danger':'badge-success'}" style="font-size:0.7rem;">${(a.erro||a.error)?'Erro':'OK'}</span>
+    </div>
+  `).join('');
 }
 
 // ===================== START =====================

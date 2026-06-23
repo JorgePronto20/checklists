@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CHECKLISTS Operador</title>
   <meta name="description" content="Portal de operadores para execução diária de checklists operacionais." />
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     :root {
       --dark: #0a0f1e;
@@ -324,7 +325,7 @@
     /* @section: tabs */
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       padding: 8px;
       border: 1px solid var(--line);
@@ -659,7 +660,7 @@
       .user-area { flex-direction: column; align-items: flex-end; gap: 8px; }
       .user-meta strong, .user-meta span { max-width: 140px; }
       main.dashboard { width: min(100% - 22px, 1180px); padding-top: 22px; }
-      .tabs { grid-template-columns: 1fr; border-radius: 18px; }
+      .tabs { grid-template-columns: repeat(2, 1fr); border-radius: 18px; }
       .grid { grid-template-columns: 1fr; }
       .modal-backdrop { padding: 10px; place-items: end center; }
       .modal { max-height: 94vh; border-radius: 22px; }
@@ -667,6 +668,187 @@
       .modal-foot { flex-direction: column-reverse; }
       .modal-foot .btn { width: 100%; }
       .choice-row { grid-template-columns: 1fr; }
+    }
+
+    /* @section: picar-ponto */
+    .ponto-wrap {
+      grid-column: 1 / -1;
+    }
+
+    .ponto-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.86));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    .ponto-state { display: none; padding: 32px 24px; text-align: center; }
+    .ponto-state.active { display: block; }
+
+    .ponto-icon-big {
+      font-size: 3.5rem;
+      line-height: 1;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .ponto-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+
+    .ponto-hint {
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.55;
+    }
+
+    .btn-qr {
+      font-size: 1.1rem;
+      padding: 16px 28px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: 0;
+      font-weight: 900;
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+      transition: transform 0.16s, filter 0.16s;
+      cursor: pointer;
+    }
+
+    .btn-qr:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .qr-video-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 20px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid var(--line-strong);
+    }
+
+    #qrVideo {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+
+    .qr-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 4px solid transparent;
+      border-radius: 18px;
+      transition: border-color 0.2s ease;
+    }
+
+    .qr-overlay.detected {
+      border-color: var(--success);
+      box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+
+    .qr-corners {
+      position: absolute;
+      inset: 12px;
+      pointer-events: none;
+    }
+
+    .qr-corners::before,
+    .qr-corners::after {
+      content: '';
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-color: rgba(255, 255, 255, 0.7);
+      border-style: solid;
+    }
+
+    .qr-corners::before {
+      top: 0; left: 0;
+      border-width: 3px 0 0 3px;
+      border-radius: 4px 0 0 0;
+    }
+
+    .qr-corners::after {
+      bottom: 0; right: 0;
+      border-width: 0 3px 3px 0;
+      border-radius: 0 0 4px 0;
+    }
+
+    #qrCanvas { display: none; }
+
+    .ponto-result-icon { font-size: 3rem; line-height: 1; margin-bottom: 12px; display: block; }
+
+    .ponto-result-msg {
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+    }
+
+    .ponto-result-sub { color: var(--muted); margin-bottom: 24px; }
+
+    .ponto-result.success .ponto-result-msg { color: #34d399; }
+    .ponto-result.warning .ponto-result-msg { color: var(--warning); }
+    .ponto-result.error .ponto-result-msg { color: #f87171; }
+
+    .historico-ponto {
+      border-top: 1px solid var(--line);
+      padding: 24px;
+    }
+
+    .historico-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .ponto-list { display: grid; gap: 10px; }
+
+    .ponto-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .ponto-item-hora {
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .ponto-item-info { flex: 1 1 0; min-width: 0; }
+    .ponto-item-tipo { font-weight: 800; display: block; }
+    .ponto-item-loja { color: var(--muted); font-size: 0.83rem; display: block; margin-top: 2px; }
+
+    .ponto-item-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ponto-item-dot.entrada { background: var(--success); }
+    .ponto-item-dot.saida { background: var(--secondary); }
+
+    .historico-empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 16px 0;
     }
   </style>
 </head>
@@ -761,10 +943,71 @@
         <button class="tab-btn active" type="button" data-period="abertura">Abertura (0/0)</button>
         <button class="tab-btn" type="button" data-period="recorrente">Recorrente (0/0)</button>
         <button class="tab-btn" type="button" data-period="fecho">Fecho (0/0)</button>
+        <button class="tab-btn" type="button" data-period="ponto">📍 Picar Ponto</button>
       </nav>
 
       <!-- @section: cards-grid -->
       <section id="cardsGrid" class="grid" aria-live="polite"></section>
+
+      <!-- @section: picar-ponto -->
+      <section id="pontoSection" class="grid hidden" aria-live="polite">
+        <div class="ponto-wrap">
+          <div class="ponto-panel">
+
+            <!-- Estado 1: Botão iniciar -->
+            <div id="pontoStateIdle" class="ponto-state active">
+              <span class="ponto-icon-big">📍</span>
+              <p class="ponto-title">Picar Ponto</p>
+              <p class="ponto-hint">Aponta a câmara para o QR da loja para registar a tua entrada ou saída.</p>
+              <button id="btnIniciarQR" class="btn-qr" type="button">📷 Ler QR Code</button>
+            </div>
+
+            <!-- Estado 2: Câmara activa -->
+            <div id="pontoStateCamera" class="ponto-state">
+              <p class="ponto-title">Câmara activa</p>
+              <p class="ponto-hint">Aponta para o QR Code da loja — detecção automática</p>
+              <div class="qr-video-wrap">
+                <video id="qrVideo" autoplay playsinline muted aria-label="Feed da câmara para leitura de QR"></video>
+                <div id="qrOverlay" class="qr-overlay">
+                  <div class="qr-corners"></div>
+                </div>
+              </div>
+              <canvas id="qrCanvas"></canvas>
+              <button id="btnCancelarQR" class="btn secondary" type="button" style="margin-top:8px;">✕ Cancelar</button>
+            </div>
+
+            <!-- Estado 3: A processar -->
+            <div id="pontoStateProcessing" class="ponto-state">
+              <span class="ponto-icon-big">⏳</span>
+              <p class="ponto-title">A validar picagem...</p>
+              <p class="ponto-hint">Aguarda um momento enquanto registamos a tua picagem.</p>
+              <div style="display:inline-flex;align-items:center;gap:10px;color:var(--muted);">
+                <span class="spinner"></span>
+                <span>A comunicar com o servidor...</span>
+              </div>
+            </div>
+
+            <!-- Estado 4: Resultado -->
+            <div id="pontoStateResult" class="ponto-state">
+              <div id="pontoResultContent" class="ponto-result">
+                <span id="pontoResultIcon" class="ponto-result-icon">✅</span>
+                <p id="pontoResultMsg" class="ponto-result-msg"></p>
+                <p id="pontoResultSub" class="ponto-result-sub"></p>
+              </div>
+              <button id="btnPicarNovamente" class="btn-qr" type="button">🔄 Picar de novo</button>
+            </div>
+
+          </div>
+
+          <!-- Histórico do dia -->
+          <div id="historicoPonto" class="historico-ponto" style="margin-top:16px; border:1px solid var(--line); border-radius:var(--radius); background:linear-gradient(180deg,rgba(30,41,59,0.78),rgba(15,23,42,0.86));">
+            <p class="historico-title">Picagens de hoje</p>
+            <div id="pontoList" class="ponto-list">
+              <p class="historico-empty">A carregar...</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -872,14 +1115,32 @@
       els.executionForm.addEventListener('submit', handleChecklistSubmit);
       els.tabButtons.forEach((button) => {
         button.addEventListener('click', () => {
+          const previous = state.activePeriod;
           state.activePeriod = button.dataset.period;
+          // Se saímos da tab ponto, para a câmara
+          if (previous === 'ponto' && state.activePeriod !== 'ponto') {
+            stopQRScanner();
+          }
           renderTabs();
-          renderCards();
+          if (state.activePeriod === 'ponto') {
+            document.getElementById('cardsGrid').classList.add('hidden');
+            document.getElementById('pontoSection').classList.remove('hidden');
+            loadHistoricoPonto();
+          } else {
+            document.getElementById('cardsGrid').classList.remove('hidden');
+            document.getElementById('pontoSection').classList.add('hidden');
+            renderCards();
+          }
         });
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !els.modalBackdrop.classList.contains('hidden')) closeModal();
       });
+
+      // Picar ponto eventos
+      document.getElementById('btnIniciarQR').addEventListener('click', initQRScanner);
+      document.getElementById('btnCancelarQR').addEventListener('click', stopQRScanner);
+      document.getElementById('btnPicarNovamente').addEventListener('click', () => showPontoState('idle'));
     }
 
     async function handleLogin(event) {
@@ -990,11 +1251,15 @@
     function renderTabs() {
       els.tabButtons.forEach((button) => {
         const period = button.dataset.period;
+        button.classList.toggle('active', state.activePeriod === period);
+        if (period === 'ponto') {
+          button.textContent = '📍 Picar Ponto';
+          return;
+        }
         const items = state.assignments.filter((item) => item.periodo === period);
         const done = items.filter((item) => item.concluida).length;
         const label = PERIODS.find((p) => p.key === period).label;
         button.textContent = label + ' (' + done + '/' + items.length + ')';
-        button.classList.toggle('active', state.activePeriod === period);
       });
     }
 
@@ -1327,6 +1592,166 @@
     function escapeAttr(value) {
       return escapeHtml(value).replaceAll('`', '&#096;');
     }
+
+    // ─── Picar Ponto — QR Scanner ────────────────────────────────────────────
+
+    const qr = {
+      stream: null,
+      animFrame: null,
+      processing: false
+    };
+
+    function showPontoState(name) {
+      const states = ['idle', 'camera', 'processing', 'result'];
+      const map = { idle: 'pontoStateIdle', camera: 'pontoStateCamera', processing: 'pontoStateProcessing', result: 'pontoStateResult' };
+      states.forEach((s) => {
+        const el = document.getElementById(map[s]);
+        if (el) el.classList.toggle('active', s === name);
+      });
+    }
+
+    async function initQRScanner() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast('A câmara não está disponível neste dispositivo ou browser.', 'error');
+        return;
+      }
+      try {
+        qr.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        const video = document.getElementById('qrVideo');
+        video.srcObject = qr.stream;
+        await video.play();
+        showPontoState('camera');
+        qr.processing = false;
+        scanFrame();
+      } catch (error) {
+        const msg = error.name === 'NotAllowedError'
+          ? 'Permissão de câmara negada. Autoriza o acesso à câmara no browser.'
+          : 'Não foi possível aceder à câmara: ' + (error.message || error.name);
+        toast(msg, 'error');
+      }
+    }
+
+    function stopQRScanner() {
+      if (qr.animFrame) { cancelAnimationFrame(qr.animFrame); qr.animFrame = null; }
+      if (qr.stream) { qr.stream.getTracks().forEach((t) => t.stop()); qr.stream = null; }
+      const video = document.getElementById('qrVideo');
+      if (video) { video.srcObject = null; }
+      const overlay = document.getElementById('qrOverlay');
+      if (overlay) overlay.classList.remove('detected');
+      qr.processing = false;
+      showPontoState('idle');
+    }
+
+    function scanFrame() {
+      if (!qr.stream || qr.processing) return;
+      const video = document.getElementById('qrVideo');
+      const canvas = document.getElementById('qrCanvas');
+      if (!video || !canvas || video.readyState < 2) {
+        qr.animFrame = requestAnimationFrame(scanFrame);
+        return;
+      }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = typeof jsQR !== 'undefined' ? jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' }) : null;
+      if (code && code.data) {
+        const overlay = document.getElementById('qrOverlay');
+        if (overlay) overlay.classList.add('detected');
+        qr.processing = true;
+        stopQRScanner();
+        processarQR(code.data);
+      } else {
+        qr.animFrame = requestAnimationFrame(scanFrame);
+      }
+    }
+
+    async function processarQR(dados) {
+      showPontoState('processing');
+      try {
+        let payload;
+        try { payload = JSON.parse(dados); } catch (e) { payload = { token: dados }; }
+        const token = localStorage.getItem(STORAGE.token) || state.token;
+        const data = await apiFetch('/api/ponto/validar', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ token: payload.token || dados, lojaId: payload.lojaId || '' })
+        }, false);
+
+        const hora = data.hora || new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+        const tipo = String(data.tipo || 'entrada').toLowerCase();
+        const resultEl = document.getElementById('pontoResultContent');
+        const iconEl = document.getElementById('pontoResultIcon');
+        const msgEl = document.getElementById('pontoResultMsg');
+        const subEl = document.getElementById('pontoResultSub');
+
+        resultEl.className = 'ponto-result success';
+        iconEl.textContent = '✅';
+        msgEl.textContent = tipo === 'saida' ? 'Saída registada — ' + hora : 'Entrada registada — ' + hora;
+        subEl.textContent = data.loja ? 'Loja: ' + data.loja : 'Picagem registada com sucesso';
+        showPontoState('result');
+        loadHistoricoPonto();
+      } catch (error) {
+        const msg = String(error.message || '');
+        const resultEl = document.getElementById('pontoResultContent');
+        const iconEl = document.getElementById('pontoResultIcon');
+        const msgEl = document.getElementById('pontoResultMsg');
+        const subEl = document.getElementById('pontoResultSub');
+
+        if (msg.toLowerCase().includes('expir') || msg.toLowerCase().includes('expired')) {
+          resultEl.className = 'ponto-result warning';
+          iconEl.textContent = '⚠️';
+          msgEl.textContent = 'QR expirado';
+          subEl.textContent = 'Pede um QR novo na loja e tenta novamente.';
+        } else {
+          resultEl.className = 'ponto-result error';
+          iconEl.textContent = '❌';
+          msgEl.textContent = 'Erro ao registar picagem';
+          subEl.textContent = msg || 'Não foi possível registar. Tenta novamente.';
+        }
+        showPontoState('result');
+      }
+    }
+
+    async function loadHistoricoPonto() {
+      const listEl = document.getElementById('pontoList');
+      if (!listEl) return;
+      listEl.innerHTML = '<p class="historico-empty">A carregar...</p>';
+      try {
+        const token = localStorage.getItem(STORAGE.token) || state.token;
+        const data = await apiFetch('/api/ponto/hoje', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token }
+        }, false);
+        const items = Array.isArray(data) ? data : (Array.isArray(data.picagens) ? data.picagens : []);
+        if (!items.length) {
+          listEl.innerHTML = '<p class="historico-empty">Sem picagens registadas hoje.</p>';
+          return;
+        }
+        listEl.innerHTML = items.map((p) => {
+          const tipo = String(p.tipo || 'entrada').toLowerCase();
+          const hora = p.hora || (p.created_at ? new Date(p.created_at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : '—');
+          const loja = p.loja || p.loja_nome || '';
+          const dot = tipo.includes('sa') ? 'saida' : 'entrada';
+          const tipoLabel = tipo.includes('sa') ? '↩ Saída' : '↪ Entrada';
+          return '<div class="ponto-item">' +
+            '<span class="ponto-item-hora">' + escapeHtml(hora) + '</span>' +
+            '<div class="ponto-item-info">' +
+              '<span class="ponto-item-tipo">' + tipoLabel + '</span>' +
+              (loja ? '<span class="ponto-item-loja">🏪 ' + escapeHtml(loja) + '</span>' : '') +
+            '</div>' +
+            '<span class="ponto-item-dot ' + dot + '"></span>' +
+          '</div>';
+        }).join('');
+      } catch (error) {
+        listEl.innerHTML = '<p class="historico-empty">Não foi possível carregar o histórico.</p>';
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     init();
   </script>
