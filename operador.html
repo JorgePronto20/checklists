@@ -1152,10 +1152,17 @@
 
       try {
         setLoading(true, 'A autenticar...');
-        const data = await apiFetch('/api/operador/login', {
+        const resp = await apiFetch('/api/operador/login', {
           method: 'POST',
           body: JSON.stringify({ username, password })
         }, false);
+
+        // worker devolve { success: true, data: { token, nome, ... } }
+        // ou { success: true, data: { success: false, error: "..." } }
+        const data = (resp && resp.data) ? resp.data : resp;
+        if (data.success === false || !data.token) {
+          throw new Error(data.error || 'Credenciais inválidas.');
+        }
 
         state.token = data.token || '';
         state.nome = data.nome || username;
@@ -1208,10 +1215,11 @@
       if (!state.token) return;
       try {
         if (!silent) setLoading(true, 'A carregar checklists...');
-        const data = await apiFetch('/api/operador/hoje', {
+        const resp = await apiFetch('/api/operador/hoje', {
           method: 'GET',
           headers: { Authorization: 'Bearer ' + state.token }
         }, true);
+        const data = (resp && resp.data !== undefined) ? resp.data : resp;
         state.assignments = Array.isArray(data) ? data.map(normalizeAssignment) : [];
         renderTabs();
         renderCards();
