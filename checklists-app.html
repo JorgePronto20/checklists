@@ -1355,7 +1355,7 @@ function navigate(page, el) {
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
+  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: loadColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -1692,6 +1692,23 @@ function deleteModelo(id) {
 }
 
 // ===================== COLABORADORES =====================
+function loadColaboradores() {
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/colaboradores', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => {
+      DB.colaboradores = d.data || d.results || d || [];
+      renderColaboradores();
+    })
+    .catch(() => renderColaboradores());
+  } else {
+    renderColaboradores();
+  }
+}
+
 function renderColaboradores() {
   const search = document.getElementById('searchColab')?.value?.toLowerCase() || '';
   let list = DB.colaboradores;
@@ -1742,18 +1759,28 @@ function saveColaborador() {
 
   const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
 
-  if (isLive && editId) {
-    fetch(DB.config.apiUrl + '/api/colaboradores/' + editId, {
-      method: 'PUT',
+  if (isLive) {
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId
+      ? DB.config.apiUrl + '/api/colaboradores/' + editId
+      : DB.config.apiUrl + '/api/colaboradores';
+    fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
       body: JSON.stringify(payload)
     })
     .then(r => r.json())
-    .then(() => { toast('Colaborador actualizado', 'success'); closeModal('modalColaborador'); renderColaboradores(); })
-    .catch(() => toast('Erro ao actualizar colaborador', 'error'));
+    .then(d => {
+      if (d.success === false) { toast('Erro: ' + (d.error || 'Erro desconhecido'), 'error'); return; }
+      toast(editId ? 'Colaborador actualizado' : 'Colaborador criado', 'success');
+      closeModal('modalColaborador');
+      loadColaboradores();
+    })
+    .catch(e => toast('Erro ao guardar colaborador: ' + e.message, 'error'));
     return;
   }
 
+  // Modo demo local
   if (editId) {
     const c = DB.colaboradores.find(x=>x.id==editId);
     if (c) {
@@ -1767,7 +1794,7 @@ function saveColaborador() {
     DB.colaboradores.push({ id: Date.now(), ...payload, criado_em: new Date().toISOString() });
     logActivity('colaborador', 'Colaborador criado: ' + nome);
   }
-  saveToStorage(); closeModal('modalColaborador'); renderColaboradores(); toast('Colaborador guardado', 'success');
+  saveToStorage(); closeModal('modalColaborador'); renderColaboradores(); toast('Colaborador guardado (demo local)', 'success');
 }
 
 function editColaborador(id) {
