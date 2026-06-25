@@ -2690,8 +2690,9 @@ function eliminarLoja(id) {
 }
 
 function verQRLoja(id) {
-  const apiUrl = DB.config.apiUrl || 'https://checklists-api.jorgepronto20.workers.dev';
-  window.open(apiUrl.replace(/\/+$/, '') + '/qr-display.html?loja=' + id, '_blank');
+  // qr-display.html está no GitHub Pages, não no Worker
+  const pagesBase = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+  window.open(pagesBase + '/qr-display.html?loja=' + id, '_blank');
 }
 
 function escHtml(str) {
