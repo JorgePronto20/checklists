@@ -1158,9 +1158,8 @@
         }, false);
 
         // worker devolve { success: true, data: { token, nome, ... } }
-        // ou { success: true, data: { success: false, error: "..." } }
         const data = (resp && resp.data) ? resp.data : resp;
-        if (data.success === false || !data.token) {
+        if (!data.token) {
           throw new Error(data.error || 'Credenciais inválidas.');
         }
 
