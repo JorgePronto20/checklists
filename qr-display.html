@@ -4,7 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Picar Ponto — QR Code</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="loadFallbackQR()"></script>
+  <script>
+    function loadFallbackQR() {
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -560,17 +567,52 @@ async function fetchAndDisplayQR(lojaId) {
 
 async function renderQR(text) {
   const canvas = document.getElementById('qr-canvas');
-  const size   = canvas.offsetWidth || 280;
+  const size   = Math.max(canvas.offsetWidth || 280, 280);
 
-  await QRCode.toCanvas(canvas, text, {
-    width:           size,
-    margin:          0,
-    color: {
-      dark:  '#000000',
-      light: '#ffffff'
-    },
-    errorCorrectionLevel: 'M'
-  });
+  // Tentar usar biblioteca QRCode se disponível
+  if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
+    try {
+      await QRCode.toCanvas(canvas, text, {
+        width: size, margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+        errorCorrectionLevel: 'M'
+      });
+      return;
+    } catch(e) {
+      console.warn('QRCode.toCanvas falhou, usando fallback:', e);
+    }
+  }
+
+  // Fallback: gerar QR como imagem via API pública
+  const ctx = canvas.getContext('2d');
+  canvas.width  = size;
+  canvas.height = size;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#666666';
+  ctx.font = '14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('A carregar QR...', size/2, size/2);
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  // Usar API pública de QR (goqr.me - fiável e gratuita)
+  const encoded = encodeURIComponent(text);
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=10&format=png`;
+  img.onload = () => {
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(img, 0, 0, size, size);
+  };
+  img.onerror = () => {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Erro ao gerar QR', size/2, size/2 - 10);
+    ctx.font = '11px monospace';
+    ctx.fillText('Verifica a ligação à internet', size/2, size/2 + 10);
+  };
 }
 
 /* ═══════════════════════════════════════════
