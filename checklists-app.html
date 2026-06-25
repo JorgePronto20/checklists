@@ -2091,12 +2091,12 @@ function saveAtribuicao() {
   if (!dias.length) { toast('Selecione pelo menos um dia da semana', 'error'); return; }
   const editId = document.getElementById('atribuicaoEditId').value;
   const payload = {
-    modelo_id: modeloId,
-    colaborador_id: document.getElementById('atribColaborador').value,
+    modelo_id: parseInt(modeloId),
+    colaborador_id: document.getElementById('atribColaborador').value || null,
     periodo: document.getElementById('atribPeriodo').value,
     hora_limite: horaLimite,
-    dias,
-    ativa: document.getElementById('atribAtiva').checked ? 1 : 0
+    dias_semana: dias.join(','),
+    ativo: document.getElementById('atribAtiva').checked ? 1 : 0
   };
   const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
   if (isLive) {
