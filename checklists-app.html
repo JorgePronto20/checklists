@@ -477,9 +477,6 @@
         <button class="nav-item" onclick="navigate('lojas', this)">
           <span class="nav-icon">🏪</span> Lojas
         </button>
-        <button class="nav-item" onclick="navigate('credenciais', this)">
-          <span class="nav-icon">🔑</span> Credenciais
-        </button>
         <button class="nav-item" onclick="navigate('atribuicoes', this)">
           <span class="nav-icon">📋</span> Atribuições
         </button>
@@ -727,24 +724,11 @@
             <div class="table-wrap">
               <table>
                 <thead>
-                  <tr><th>Nome</th><th>Cargo</th><th>PIN</th><th>Estado</th><th>Checklists</th><th>Ações</th></tr>
+                  <tr><th>Nome</th><th>Cargo</th><th>PIN</th><th>Email</th><th>Acesso Portal</th><th>Estado</th><th>Checklists</th><th>Ações</th></tr>
                 </thead>
                 <tbody id="colaboradoresBody"></tbody>
               </table>
             </div>
-          </div>
-        </div>
-
-        <!-- CREDENCIAIS -->
-        <div class="page" id="page-credenciais">
-          <div class="section-card">
-            <div class="section-header">
-              <div>
-                <div class="section-title">🔑 Credenciais de Acesso — Portal Operador</div>
-                <div class="section-subtitle">Define o username e password de cada colaborador para acesso ao portal do operador (operador.html).</div>
-              </div>
-            </div>
-            <div id="credenciaisContent"></div>
           </div>
         </div>
 
@@ -977,6 +961,24 @@
         <option value="0">Inativo</option>
       </select>
     </div>
+    <div style="border-top:1px solid var(--border);margin:16px 0 12px;padding-top:12px;">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
+        🔑 Acesso ao Portal Operador
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" id="colabUsername" placeholder="ex: ana.silva" autocomplete="off">
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Deixar em branco para não alterar</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nova Password</label>
+        <input type="password" class="form-control" id="colabPassword" placeholder="Deixar em branco para não alterar" autocomplete="new-password">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="colabForceChange" style="width:16px;height:16px;cursor:pointer;">
+        <label for="colabForceChange" style="font-size:0.85rem;cursor:pointer;">Forçar troca de password no próximo login</label>
+      </div>
+    </div>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalColaborador')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveColaborador()">💾 Guardar</button>
@@ -1058,39 +1060,6 @@
       <button class="modal-close" onclick="closeModal('modalVerChecklist')">✕</button>
     </div>
     <div id="checklistDetalhes"></div>
-  </div>
-</div>
-
-<!-- Modal Credencial -->
-<div class="modal-overlay" id="modalCredencial">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalCredencialTitle">Definir Credenciais</div>
-      <button class="modal-close" onclick="closeModal('modalCredencial')">✕</button>
-    </div>
-    <input type="hidden" id="credencialColabId">
-    <div class="form-group">
-      <label class="form-label">Colaborador</label>
-      <div id="credencialColabNome" style="font-size:0.9rem; font-weight:600; padding:8px 0;"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Username *</label>
-      <input type="text" class="form-control" id="credencialUsername" placeholder="Ex: ana.silva" autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nova Password <span style="color:var(--text-muted); font-size:0.78rem;">(deixe vazio para manter actual)</span></label>
-      <input type="password" class="form-control" id="credencialPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-    </div>
-    <div class="form-group">
-      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
-        <input type="checkbox" id="credencialForceChange" checked style="width:16px; height:16px; cursor:pointer;">
-        <span>Forçar troca de password na próxima entrada</span>
-      </label>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modalCredencial')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveCredencial()">💾 Guardar</button>
-    </div>
   </div>
 </div>
 
@@ -1383,14 +1352,14 @@ function navigate(page, el) {
   if (el) el.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n => { if (n.onclick?.toString().includes("'"+page+"'")) n.classList.add('active'); });
   currentPage = page;
-  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', credenciais:'Credenciais', atribuicoes:'Atribuições', atividade:'Atividade', config:'Configurações', lojas:'Lojas', folhaponto:'Folha de Ponto' };
+  const titles = { dashboard:'Dashboard', executar:'Executar Checklist', checklists:'Histórico', alertas:'Alertas', modelos:'Modelos', colaboradores:'Colaboradores', atribuicoes:'Atribuições', atividade:'Atividade', config:'Configurações', lojas:'Lojas', folhaponto:'Folha de Ponto' };
   document.getElementById('pageTitle').textContent = titles[page] || page;
   closeSidebar();
   refreshCurrentPage();
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, credenciais: loadCredenciais, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
+  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: renderColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -1733,13 +1702,18 @@ function renderColaboradores() {
   if (search) list = list.filter(c => c.nome.toLowerCase().includes(search) || (c.cargo||'').toLowerCase().includes(search));
   document.getElementById('colaboradoresBody').innerHTML = list.length ? list.map(c => {
     const total = DB.checklists.filter(x=>x.colaborador_id===c.id).length;
+    const acessoBadge = c.username
+      ? `<span class="badge badge-success" title="Username: ${c.username}">✓ Configurado</span>`
+      : `<span class="badge badge-neutral">Sem acesso</span>`;
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px;">
         <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">${c.nome.charAt(0)}</div>
-        <div><div style="font-size:0.88rem;font-weight:600;">${c.nome}</div>${c.email?`<div style="font-size:0.76rem;color:var(--text-muted);">${c.email}</div>`:''}</div>
+        <div><div style="font-size:0.88rem;font-weight:600;">${c.nome}</div></div>
       </div></td>
       <td>${c.cargo||'<span style="color:var(--text-muted)">—</span>'}</td>
       <td><span class="pin-display">${'•'.repeat(c.pin?.length||4)}</span></td>
+      <td style="font-size:0.82rem;color:var(--text-muted);">${c.email||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${acessoBadge}</td>
       <td>${c.ativo ? '<span class="badge badge-success">Ativo</span>' : '<span class="badge badge-neutral">Inativo</span>'}</td>
       <td><span class="badge badge-info">${total}</span></td>
       <td><div class="td-actions">
@@ -1747,7 +1721,7 @@ function renderColaboradores() {
         <button class="btn btn-danger btn-icon btn-sm" onclick="deleteColaborador(${c.id})">🗑</button>
       </div></td>
     </tr>`;
-  }).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores</div></div></td></tr>`;
+  }).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores</div></div></td></tr>`;
 }
 
 function saveColaborador() {
@@ -1756,11 +1730,49 @@ function saveColaborador() {
   if (!nome) { toast('Nome obrigatório', 'error'); return; }
   if (!pin || pin.length < 4) { toast('PIN deve ter mínimo 4 dígitos', 'error'); return; }
   const editId = document.getElementById('colabEditId').value;
+
+  const payload = {
+    nome,
+    cargo: document.getElementById('colabCargo').value.trim(),
+    pin,
+    email: document.getElementById('colabEmail').value.trim(),
+    ativo: parseInt(document.getElementById('colabAtivo').value),
+  };
+
+  // Credenciais apenas se preenchidas
+  const username = document.getElementById('colabUsername').value.trim();
+  const password = document.getElementById('colabPassword').value;
+  const forceChange = document.getElementById('colabForceChange').checked;
+
+  if (username) payload.username = username;
+  if (password) payload.password = password;
+  if (username || password) payload.force_password_change = forceChange ? 1 : 0;
+
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+
+  if (isLive && editId) {
+    fetch(DB.config.apiUrl + '/api/colaboradores/' + editId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(() => { toast('Colaborador actualizado', 'success'); closeModal('modalColaborador'); renderColaboradores(); })
+    .catch(() => toast('Erro ao actualizar colaborador', 'error'));
+    return;
+  }
+
   if (editId) {
     const c = DB.colaboradores.find(x=>x.id==editId);
-    if (c) { c.nome=nome; c.cargo=document.getElementById('colabCargo').value; c.pin=pin; c.email=document.getElementById('colabEmail').value; c.ativo=parseInt(document.getElementById('colabAtivo').value); }
+    if (c) {
+      c.nome = payload.nome; c.cargo = payload.cargo; c.pin = payload.pin;
+      c.email = payload.email; c.ativo = payload.ativo;
+      if (username) c.username = username;
+      if (password) c.portal_password = password;
+      if (username || password) c.force_password_change = forceChange ? 1 : 0;
+    }
   } else {
-    DB.colaboradores.push({ id: Date.now(), nome, cargo: document.getElementById('colabCargo').value, pin, email: document.getElementById('colabEmail').value, ativo: parseInt(document.getElementById('colabAtivo').value), criado_em: new Date().toISOString() });
+    DB.colaboradores.push({ id: Date.now(), ...payload, criado_em: new Date().toISOString() });
     logActivity('colaborador', 'Colaborador criado: ' + nome);
   }
   saveToStorage(); closeModal('modalColaborador'); renderColaboradores(); toast('Colaborador guardado', 'success');
@@ -1776,6 +1788,9 @@ function editColaborador(id) {
   document.getElementById('colabPin').value = c.pin;
   document.getElementById('colabEmail').value = c.email||'';
   document.getElementById('colabAtivo').value = c.ativo;
+  document.getElementById('colabUsername').value = c.username || '';
+  document.getElementById('colabPassword').value = '';  // sempre em branco por segurança
+  document.getElementById('colabForceChange').checked = c.force_password_change === 1;
   openModal('modalColaborador');
 }
 
@@ -1952,122 +1967,6 @@ function openExecutarParaColaborador() {
   // Navega para a página executar a partir do contexto de colaboradores
   const navBtn = document.querySelector('.nav-item[onclick*="\'executar\'"]');
   navigate('executar', navBtn);
-}
-
-// ===================== CREDENCIAIS =====================
-function loadCredenciais() {
-  const container = document.getElementById('credenciaisContent');
-  if (!container) return;
-  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
-  if (!isLive) {
-    // Modo Demo: mostrar tabela com dados locais
-    renderCredenciaisLocal(container);
-    return;
-  }
-  // Modo Live: chamar API
-  container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">A carregar...</div>';
-  fetch(DB.config.apiUrl + '/api/colaboradores', {
-    headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
-  })
-  .then(r => r.json())
-  .then(data => renderCredenciaisTabela(container, data.data || data.results || []))
-  .catch(() => renderCredenciaisLocal(container));
-}
-
-function renderCredenciaisLocal(container) {
-  const list = DB.colaboradores;
-  if (!list.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores. Crie colaboradores primeiro.</div></div>';
-    return;
-  }
-  renderCredenciaisTabela(container, list);
-}
-
-function renderCredenciaisTabela(container, list) {
-  container.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th><th>Cargo</th><th>Username</th><th>Acesso ao Portal</th><th>Acções</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map(c => {
-            const hasUser = !!(c.username);
-            return `<tr>
-              <td>
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <div style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:700;flex-shrink:0;">${(c.nome||'?').charAt(0)}</div>
-                  <span style="font-size:0.88rem;font-weight:600;">${c.nome||'—'}</span>
-                </div>
-              </td>
-              <td style="font-size:0.83rem;color:var(--text-muted);">${c.cargo||'—'}</td>
-              <td>
-                ${hasUser
-                  ? `<span style="font-family:monospace;font-size:0.85rem;color:var(--secondary);">${c.username}</span>`
-                  : `<span style="color:var(--text-muted);font-size:0.82rem;font-style:italic;">Não definido</span>`}
-              </td>
-              <td>
-                ${hasUser
-                  ? `<span class="badge badge-success">✓ Configurado</span>`
-                  : `<span class="badge badge-neutral">Sem acesso</span>`}
-              </td>
-              <td>
-                <button class="btn btn-ghost btn-sm" onclick="openCredencialModal(${c.id}, '${(c.nome||'').replace(/'/g,"\\'")}', '${(c.username||'').replace(/'/g,"\\'")}')">
-                  🔑 ${hasUser ? 'Editar' : 'Criar'}
-                </button>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-    ${DB.config.mode !== 'live' ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:8px; font-size:0.8rem; color:#fbbf24;">
-      ⚠️ Modo Demo activo. As credenciais são guardadas localmente. Configure a API em <strong>Configurações</strong> para persistência real.
-    </div>` : ''}
-  `;
-}
-
-function openCredencialModal(colabId, nome, usernameActual) {
-  document.getElementById('credencialColabId').value = colabId;
-  document.getElementById('credencialColabNome').textContent = nome;
-  document.getElementById('credencialUsername').value = usernameActual || '';
-  document.getElementById('credencialPassword').value = '';
-  document.getElementById('credencialForceChange').checked = true;
-  document.getElementById('modalCredencialTitle').textContent = usernameActual ? 'Editar Credenciais — ' + nome : 'Criar Credenciais — ' + nome;
-  document.getElementById('modalCredencial').classList.add('open');
-}
-
-function saveCredencial() {
-  const colabId = document.getElementById('credencialColabId').value;
-  const username = document.getElementById('credencialUsername').value.trim();
-  const password = document.getElementById('credencialPassword').value;
-  const forceChange = document.getElementById('credencialForceChange').checked;
-  if (!username) { toast('Username obrigatório', 'error'); return; }
-  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
-  if (isLive) {
-    fetch(DB.config.apiUrl + '/api/colaboradores/' + colabId, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
-      body: JSON.stringify({ username, ...(password ? { password } : {}), force_password_change: forceChange })
-    })
-    .then(r => r.json())
-    .then(() => { toast('Credenciais guardadas', 'success'); closeModal('modalCredencial'); loadCredenciais(); })
-    .catch(() => toast('Erro ao guardar credenciais', 'error'));
-  } else {
-    // Demo: guardar localmente
-    const c = DB.colaboradores.find(x => x.id == colabId);
-    if (c) {
-      c.username = username;
-      if (password) c.portal_password = password;
-      c.force_password_change = forceChange;
-      saveToStorage();
-    }
-    toast('Credenciais guardadas (demo local)', 'success');
-    closeModal('modalCredencial');
-    loadCredenciais();
-  }
 }
 
 // ===================== ATRIBUIÇÕES =====================
@@ -2336,8 +2235,9 @@ function openModal(id) {
   if (id === 'modalColaborador') {
     document.getElementById('modalColabTitle').textContent = 'Novo Colaborador';
     document.getElementById('colabEditId').value = '';
-    ['colabNome','colabCargo','colabPin','colabEmail'].forEach(x => document.getElementById(x).value = '');
+    ['colabNome','colabCargo','colabPin','colabEmail','colabUsername','colabPassword'].forEach(x => document.getElementById(x).value = '');
     document.getElementById('colabAtivo').value = '1';
+    document.getElementById('colabForceChange').checked = false;
   }
   if (id === 'modalModelo') {
     document.getElementById('modalModeloTitle').textContent = 'Novo Modelo';
