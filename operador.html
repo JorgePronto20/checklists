@@ -1688,17 +1688,20 @@
         let payload;
         try { payload = JSON.parse(dados); } catch (e) { /* formato simples token:lojaId */ const p = dados.split(':'); payload = p.length>=2 ? { token: p[0], lojaId: p[1] } : { token: dados }; }
         const sessionToken = localStorage.getItem(STORAGE.token) || state.token || '';
-        const data = await apiFetch('/api/ponto/validar', {
+        const respPonto = await apiFetch('/api/ponto/validar', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + sessionToken
           },
-          body: JSON.stringify({ 
-            token: payload.token || (dados.includes(':') ? dados.split(':')[0] : dados), 
+          body: JSON.stringify({
+            token: payload.token || (dados.includes(':') ? dados.split(':')[0] : dados),
             lojaId: String(payload.lojaId || (dados.includes(':') ? dados.split(':')[1] : ''))
           })
         }, false);
+
+        // worker devolve { success: true, data: { valido, tipo, hora } }
+        const data = (respPonto && respPonto.data !== undefined) ? respPonto.data : respPonto;
 
         const hora = data.hora || new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
         const tipo = String(data.tipo || 'entrada').toLowerCase();
@@ -1741,10 +1744,12 @@
       listEl.innerHTML = '<p class="historico-empty">A carregar...</p>';
       try {
         const token = localStorage.getItem(STORAGE.token) || state.token || '';
-        const data = await apiFetch('/api/ponto/hoje', {
+        const resp = await apiFetch('/api/ponto/hoje', {
           method: 'GET',
           headers: { 'Authorization': 'Bearer ' + token }
         }, false);
+        // worker devolve { success: true, data: [...] }
+        const data = (resp && resp.data !== undefined) ? resp.data : resp;
         const items = Array.isArray(data) ? data : (Array.isArray(data.picagens) ? data.picagens : []);
         if (!items.length) {
           listEl.innerHTML = '<p class="historico-empty">Sem picagens registadas hoje.</p>';

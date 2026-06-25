@@ -1865,6 +1865,21 @@ function editColaborador(id) {
 
 function deleteColaborador(id) {
   if (!confirm('Eliminar este colaborador?')) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/colaboradores/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success === false) { toast('Erro: ' + (d.error || 'Erro desconhecido'), 'error'); return; }
+      toast('Colaborador eliminado', 'success');
+      loadColaboradores();
+    })
+    .catch(e => toast('Erro ao eliminar colaborador: ' + e.message, 'error'));
+    return;
+  }
   DB.colaboradores = DB.colaboradores.filter(x=>x.id!==id);
   saveToStorage(); renderColaboradores(); toast('Colaborador eliminado', 'success');
 }
@@ -2049,7 +2064,11 @@ function loadAtribuicoes() {
       headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
     })
     .then(r => r.json())
-    .then(data => renderAtribuicoesTabela(container, data.data || data.results || []))
+    .then(data => {
+      // PROBLEMA 9: guardar em DB.atribuicoes para que openAtribuicaoModal possa pesquisar
+      DB.atribuicoes = data.data || data.results || [];
+      renderAtribuicoesTabela(container, DB.atribuicoes);
+    })
     .catch(() => renderAtribuicoesTabela(container, DB.atribuicoes || []));
   } else {
     renderAtribuicoesTabela(container, DB.atribuicoes || []);
@@ -2099,7 +2118,7 @@ function renderAtribuicoesTabela(container, list) {
               <td style="font-size:0.83rem;">${colab ? colab.nome : '<span class="badge badge-info">Todos</span>'}</td>
               <td>${periodoBadge(a.periodo)}</td>
               <td style="font-family:monospace;font-size:0.85rem;color:var(--secondary);">${a.hora_limite || '—'}</td>
-              <td style="font-size:0.8rem;color:var(--text-muted);">${diasLabel(a.dias)}</td>
+              <td style="font-size:0.8rem;color:var(--text-muted);">${diasLabel(a.dias_semana || a.dias)}</td>
               <td>${a.ativa || a.ativo ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-neutral">Inactiva</span>'}</td>
               <td>
                 <div class="td-actions">
@@ -2119,52 +2138,90 @@ function renderAtribuicoesTabela(container, list) {
 }
 
 function openAtribuicaoModal(id) {
-  // Preencher selects de modelos e colaboradores
-  const selModelo = document.getElementById('atribModelo');
-  selModelo.innerHTML = '<option value="">Selecionar modelo...</option>' +
-    DB.modelos.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-  const selColab = document.getElementById('atribColaborador');
-  selColab.innerHTML = '<option value="todos">Todos os colaboradores activos</option>' +
-    DB.colaboradores.filter(c=>c.ativo).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  // PROBLEMA 5 e 9: garantir que modelos e colaboradores estão carregados antes de abrir o modal
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
 
-  const btnEliminar = document.getElementById('btnEliminarAtrib');
-  if (id) {
-    // Editar
-    const a = (DB.atribuicoes||[]).find(x=>x.id==id);
-    document.getElementById('modalAtribuicaoTitle').textContent = 'Editar Atribuição';
-    document.getElementById('atribuicaoEditId').value = id;
-    btnEliminar.style.display = 'inline-flex';
-    if (a) {
-      selModelo.value = a.modelo_id || '';
-      selColab.value = a.colaborador_id || 'todos';
-      document.getElementById('atribPeriodo').value = a.periodo || 'abertura';
-      document.getElementById('atribHoraLimite').value = a.hora_limite || '';
-      document.getElementById('atribAtiva').checked = !!(a.ativa || a.ativo);
-      // Dias — BD devolve string "1,2,3,4,5", frontend pode ter array
-      const diasArr = Array.isArray(a.dias_semana)
-        ? a.dias_semana.map(String)
-        : Array.isArray(a.dias)
-          ? a.dias.map(String)
-          : String(a.dias_semana || a.dias || '').split(',').map(s => s.trim()).filter(Boolean);
+  const _doOpen = function() {
+    // Preencher selects de modelos e colaboradores (sempre de DB.modelos e DB.colaboradores, já carregados)
+    const selModelo = document.getElementById('atribModelo');
+    selModelo.innerHTML = '<option value="">Selecionar modelo...</option>' +
+      DB.modelos.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+    const selColab = document.getElementById('atribColaborador');
+    selColab.innerHTML = '<option value="todos">Todos os colaboradores activos</option>' +
+      DB.colaboradores.filter(c=>c.ativo).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+    const btnEliminar = document.getElementById('btnEliminarAtrib');
+    if (id) {
+      // Editar — procurar em DB.atribuicoes (carregado via loadAtribuicoes) OU na atribuição recebida por id
+      let a = (DB.atribuicoes||[]).find(x=>x.id==id);
+      document.getElementById('modalAtribuicaoTitle').textContent = 'Editar Atribuição';
+      document.getElementById('atribuicaoEditId').value = id;
+      btnEliminar.style.display = 'inline-flex';
+      if (a) {
+        selModelo.value = a.modelo_id || '';
+        selColab.value = a.colaborador_id || 'todos';
+        document.getElementById('atribPeriodo').value = a.periodo || 'abertura';
+        document.getElementById('atribHoraLimite').value = a.hora_limite || '';
+        document.getElementById('atribAtiva').checked = !!(a.ativa || a.ativo);
+        // PROBLEMA 5: BD devolve dias_semana como string "1,2,3,4,5"; converter para array de strings
+        const diasArr = Array.isArray(a.dias_semana)
+          ? a.dias_semana.map(String)
+          : Array.isArray(a.dias)
+            ? a.dias.map(String)
+            : String(a.dias_semana || a.dias || '').split(',').map(s => s.trim()).filter(Boolean);
+        document.querySelectorAll('.atrib-dia').forEach(cb => {
+          cb.checked = diasArr.includes(cb.value);
+        });
+      }
+    } else {
+      // Nova
+      document.getElementById('modalAtribuicaoTitle').textContent = 'Nova Atribuição';
+      document.getElementById('atribuicaoEditId').value = '';
+      btnEliminar.style.display = 'none';
+      selModelo.value = '';
+      selColab.value = 'todos';
+      document.getElementById('atribPeriodo').value = 'abertura';
+      document.getElementById('atribHoraLimite').value = '';
+      document.getElementById('atribAtiva').checked = true;
       document.querySelectorAll('.atrib-dia').forEach(cb => {
-        cb.checked = diasArr.includes(cb.value);
+        cb.checked = ['1','2','3','4','5'].includes(cb.value);
       });
     }
+    document.getElementById('modalAtribuicao').classList.add('open');
+  };
+
+  // PROBLEMA 9: Em modo Live, garantir que modelos e colaboradores estão carregados
+  if (isLive && (DB.modelos.length === 0 || DB.colaboradores.length === 0)) {
+    const promises = [];
+    if (DB.modelos.length === 0) {
+      promises.push(
+        fetch(DB.config.apiUrl + '/api/modelos', {
+          headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+        })
+        .then(r => r.json())
+        .then(d => {
+          DB.modelos = (d.data || d.results || []).map(m => ({
+            ...m,
+            estrutura: typeof m.estrutura === 'string' ? JSON.parse(m.estrutura || '[]') : (m.estrutura || [])
+          }));
+        })
+        .catch(() => {})
+      );
+    }
+    if (DB.colaboradores.length === 0) {
+      promises.push(
+        fetch(DB.config.apiUrl + '/api/colaboradores', {
+          headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+        })
+        .then(r => r.json())
+        .then(d => { DB.colaboradores = d.data || d.results || d || []; })
+        .catch(() => {})
+      );
+    }
+    Promise.all(promises).then(_doOpen);
   } else {
-    // Nova
-    document.getElementById('modalAtribuicaoTitle').textContent = 'Nova Atribuição';
-    document.getElementById('atribuicaoEditId').value = '';
-    btnEliminar.style.display = 'none';
-    selModelo.value = '';
-    selColab.value = 'todos';
-    document.getElementById('atribPeriodo').value = 'abertura';
-    document.getElementById('atribHoraLimite').value = '';
-    document.getElementById('atribAtiva').checked = true;
-    document.querySelectorAll('.atrib-dia').forEach(cb => {
-      cb.checked = ['1','2','3','4','5'].includes(cb.value);
-    });
+    _doOpen();
   }
-  document.getElementById('modalAtribuicao').classList.add('open');
 }
 
 function saveAtribuicao() {
