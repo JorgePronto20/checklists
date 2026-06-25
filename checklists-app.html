@@ -2140,9 +2140,14 @@ function openAtribuicaoModal(id) {
       document.getElementById('atribPeriodo').value = a.periodo || 'abertura';
       document.getElementById('atribHoraLimite').value = a.hora_limite || '';
       document.getElementById('atribAtiva').checked = !!(a.ativa || a.ativo);
-      // Dias
+      // Dias — BD devolve string "1,2,3,4,5", frontend pode ter array
+      const diasArr = Array.isArray(a.dias_semana)
+        ? a.dias_semana.map(String)
+        : Array.isArray(a.dias)
+          ? a.dias.map(String)
+          : String(a.dias_semana || a.dias || '').split(',').map(s => s.trim()).filter(Boolean);
       document.querySelectorAll('.atrib-dia').forEach(cb => {
-        cb.checked = (a.dias||[]).map(String).includes(cb.value);
+        cb.checked = diasArr.includes(cb.value);
       });
     }
   } else {

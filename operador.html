@@ -1425,9 +1425,9 @@
         setLoading(true, 'A submeter checklist...');
         const respostas = await collectResponses();
         const payload = {
-          colaborador_id: state.colabId,
-          modelo_id: state.currentAssignment.modelo_id,
-          atribuicao_id: state.currentAssignment.id,
+          colaborador_id: parseInt(state.colabId) || null,
+          modelo_id: parseInt(state.currentAssignment.modelo_id) || null,
+          atribuicao_id: parseInt(state.currentAssignment.id) || null,
           data: new Date().toISOString().slice(0, 10),
           hora: new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
           respostas
