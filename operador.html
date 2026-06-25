@@ -1617,7 +1617,10 @@
       }
       try {
         qr.stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          video: { facingMode: { ideal: 'environment' },
+        focusMode:   { ideal: 'continuous' },
+        width:       { ideal: 1280 },
+        height:      { ideal: 720 }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
         const video = document.getElementById('qrVideo');
         video.srcObject = qr.stream;
@@ -1673,7 +1676,7 @@
       showPontoState('processing');
       try {
         let payload;
-        try { payload = JSON.parse(dados); } catch (e) { payload = { token: dados }; }
+        try { payload = JSON.parse(dados); } catch (e) { /* formato simples token:lojaId */ const p = dados.split(':'); payload = p.length>=2 ? { token: p[0], lojaId: p[1] } : { token: dados }; }
         const token = localStorage.getItem(STORAGE.token) || state.token;
         const data = await apiFetch('/api/ponto/validar', {
           method: 'POST',

@@ -567,38 +567,43 @@ async function fetchAndDisplayQR(lojaId) {
 
 async function renderQR(text) {
   const canvas = document.getElementById('qr-canvas');
-  const size   = Math.max(canvas.offsetWidth || 280, 280);
+  // Usar pelo menos 320px para QR legível
+  const vmin  = Math.min(window.innerWidth, window.innerHeight);
+  const size  = Math.min(Math.max(vmin * 0.55, 320), 480);
+  canvas.width  = size;
+  canvas.height = size;
+  canvas.style.width  = size + 'px';
+  canvas.style.height = size + 'px';
 
-  // Tentar usar biblioteca QRCode se disponível
+  // Tentar biblioteca QRCode local
   if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
     try {
       await QRCode.toCanvas(canvas, text, {
-        width: size, margin: 2,
+        width: size,
+        margin: 3,                      // margem branca extra — melhora leitura
         color: { dark: '#000000', light: '#ffffff' },
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'L'       // nível L = menos módulos = QR mais simples
       });
       return;
     } catch(e) {
-      console.warn('QRCode.toCanvas falhou, usando fallback:', e);
+      console.warn('QRCode.toCanvas falhou, usando API:', e);
     }
   }
 
-  // Fallback: gerar QR como imagem via API pública
+  // Fallback: API pública qrserver.com — payload curto funciona bem
   const ctx = canvas.getContext('2d');
-  canvas.width  = size;
-  canvas.height = size;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#666666';
-  ctx.font = '14px monospace';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText('A carregar QR...', size/2, size/2);
+  ctx.fillText('A gerar QR...', size/2, size/2);
 
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  // Usar API pública de QR (goqr.me - fiável e gratuita)
   const encoded = encodeURIComponent(text);
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=10&format=png`;
+  // qrserver: nível L, margem 4, tamanho maior
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=4&ecc=L&format=png`;
   img.onload = () => {
     ctx.clearRect(0, 0, size, size);
     ctx.drawImage(img, 0, 0, size, size);
@@ -610,8 +615,6 @@ async function renderQR(text) {
     ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Erro ao gerar QR', size/2, size/2 - 10);
-    ctx.font = '11px monospace';
-    ctx.fillText('Verifica a ligação à internet', size/2, size/2 + 10);
   };
 }
 
