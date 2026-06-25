@@ -1970,7 +1970,7 @@ function loadCredenciais() {
     headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
   })
   .then(r => r.json())
-  .then(data => renderCredenciaisTabela(container, data.results || data))
+  .then(data => renderCredenciaisTabela(container, data.data || data.results || []))
   .catch(() => renderCredenciaisLocal(container));
 }
 
@@ -2081,7 +2081,7 @@ function loadAtribuicoes() {
       headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
     })
     .then(r => r.json())
-    .then(data => renderAtribuicoesTabela(container, data.results || data))
+    .then(data => renderAtribuicoesTabela(container, data.data || data.results || []))
     .catch(() => renderAtribuicoesTabela(container, DB.atribuicoes || []));
   } else {
     renderAtribuicoesTabela(container, DB.atribuicoes || []);
@@ -2587,8 +2587,8 @@ function loadLojas() {
       headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
     })
     .then(r => r.json())
-    .then(data => renderLojasTabela(data.results || data))
-    .catch(() => renderLojasTabela(DB.lojas || []));
+    .then(data => renderLojasTabela(data.data || data.results || []))
+    .catch(e => { console.error('loadLojas erro:', e); renderLojasTabela([]); });
   } else {
     renderLojasTabela(DB.lojas || []);
   }
@@ -2654,8 +2654,9 @@ function salvarLoja() {
       body: JSON.stringify(payload)
     })
     .then(r => r.json())
-    .then(() => { toast('Loja guardada', 'success'); closeModal('modalLoja'); loadLojas(); })
-    .catch(() => toast('Erro ao guardar loja', 'error'));
+    .then(r => r.json())
+    .then(d => { if(d.success === false) { toast('Erro: ' + d.error, 'error'); return; } toast('Loja guardada', 'success'); closeModal('modalLoja'); loadLojas(); })
+    .catch(e => { console.error('salvarLoja erro:', e); toast('Erro ao guardar loja', 'error'); });
   } else {
     if (!DB.lojas) DB.lojas = [];
     if (editId) {
@@ -2740,7 +2741,7 @@ function loadFolhaPonto() {
       headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
     })
     .then(r => r.json())
-    .then(data => renderTabelaPonto(data.results || data))
+    .then(data => renderTabelaPonto(data.data || data.results || []))
     .catch(() => { toast('Erro ao carregar dados de ponto', 'error'); renderTabelaPonto([]); });
   } else {
     // Modo demo: gerar dados de ponto a partir dos registos locais (pontos_registo inexistente, mostrar aviso)
@@ -2881,7 +2882,7 @@ function loadLogEnvios() {
     })
     .then(r => r.json())
     .then(data => {
-      const items = (data.results || data).filter(a =>
+      const items = (data.data || data.results || []).filter(a =>
         (a.descricao || a.description || '').toLowerCase().includes('folh') ||
         (a.tipo || '').toUpperCase() === 'CRON'
       );
