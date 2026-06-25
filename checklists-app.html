@@ -1355,7 +1355,7 @@ function navigate(page, el) {
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: renderModelos, colaboradores: loadColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
+  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: loadModelos, colaboradores: loadColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -1656,6 +1656,26 @@ function renderCampos() {
   `).join('') : '<div style="color:var(--text-muted); font-size:0.83rem; padding:10px 0; text-align:center;">Sem campos. Clique em "+ Adicionar campo"</div>';
 }
 
+function loadModelos() {
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/modelos', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => {
+      DB.modelos = (d.data || d.results || []).map(m => ({
+        ...m,
+        estrutura: typeof m.estrutura === 'string' ? JSON.parse(m.estrutura || '[]') : (m.estrutura || [])
+      }));
+      renderModelos();
+    })
+    .catch(() => renderModelos());
+  } else {
+    renderModelos();
+  }
+}
+
 function saveModelo() {
   const nome = document.getElementById('modeloNome').value.trim();
   if (!nome) { toast('Nome obrigatório', 'error'); return; }
@@ -1663,18 +1683,38 @@ function saveModelo() {
   const editId = document.getElementById('modeloEditId').value;
   // Commit campo labels
   document.querySelectorAll('#camposLista .form-control[placeholder="Nome do campo"]').forEach((inp, i) => { if (currentCampos[i]) currentCampos[i].label = inp.value; });
+  const payload = { nome, descricao: document.getElementById('modeloDesc').value, estrutura: JSON.parse(JSON.stringify(currentCampos)) };
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId ? DB.config.apiUrl + '/api/modelos/' + editId : DB.config.apiUrl + '/api/modelos';
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success === false) { toast('Erro: ' + (d.error || 'Erro desconhecido'), 'error'); return; }
+      toast(editId ? 'Modelo actualizado' : 'Modelo criado', 'success');
+      closeModal('modalModelo');
+      loadModelos();
+    })
+    .catch(e => toast('Erro ao guardar modelo: ' + e.message, 'error'));
+    return;
+  }
+  // Demo local
   if (editId) {
     const m = DB.modelos.find(x=>x.id==editId);
-    if (m) { m.nome = nome; m.descricao = document.getElementById('modeloDesc').value; m.estrutura = JSON.parse(JSON.stringify(currentCampos)); }
+    if (m) { m.nome = payload.nome; m.descricao = payload.descricao; m.estrutura = payload.estrutura; }
   } else {
-    DB.modelos.push({ id: Date.now(), nome, descricao: document.getElementById('modeloDesc').value, estrutura: JSON.parse(JSON.stringify(currentCampos)), criado_em: new Date().toISOString() });
-    logActivity('modelo', 'Modelo criado: ' + nome);
+    DB.modelos.push({ id: Date.now(), ...payload, criado_em: new Date().toISOString() });
   }
-  saveToStorage(); closeModal('modalModelo'); renderModelos(); toast('Modelo guardado', 'success');
+  saveToStorage(); closeModal('modalModelo'); renderModelos(); toast('Modelo guardado (demo local)', 'success');
 }
 
 function editModelo(id) {
-  const m = DB.modelos.find(x=>x.id===id);
+  const m = DB.modelos.find(x=>x.id==id);
   if (!m) return;
   document.getElementById('modalModeloTitle').textContent = 'Editar Modelo';
   document.getElementById('modeloEditId').value = id;
@@ -1687,8 +1727,19 @@ function editModelo(id) {
 
 function deleteModelo(id) {
   if (!confirm('Eliminar este modelo?')) return;
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/modelos/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(() => { toast('Modelo eliminado', 'success'); loadModelos(); })
+    .catch(e => toast('Erro ao eliminar modelo: ' + e.message, 'error'));
+    return;
+  }
   DB.modelos = DB.modelos.filter(x=>x.id!==id);
-  saveToStorage(); renderModelos(); toast('Modelo eliminado', 'success');
+  saveToStorage(); renderModelos(); toast('Modelo eliminado (demo local)', 'success');
 }
 
 // ===================== COLABORADORES =====================
