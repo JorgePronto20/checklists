@@ -724,7 +724,7 @@
             <div class="table-wrap">
               <table>
                 <thead>
-                  <tr><th>Nome</th><th>Cargo</th><th>PIN</th><th>Email</th><th>Acesso Portal</th><th>Estado</th><th>Checklists</th><th>Ações</th></tr>
+                  <tr><th>Nome</th><th>Cargo</th><th>Email</th><th>Acesso Portal</th><th>Estado</th><th>Checklists</th><th>Ações</th></tr>
                 </thead>
                 <tbody id="colaboradoresBody"></tbody>
               </table>
@@ -945,10 +945,6 @@
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">PIN (4-6 dígitos) *</label>
-        <input type="password" class="form-control" id="colabPin" maxlength="6" placeholder="••••">
-      </div>
       <div class="form-group">
         <label class="form-label">Email</label>
         <input type="email" class="form-control" id="colabEmail" placeholder="email@empresa.com">
@@ -1711,7 +1707,6 @@ function renderColaboradores() {
         <div><div style="font-size:0.88rem;font-weight:600;">${c.nome}</div></div>
       </div></td>
       <td>${c.cargo||'<span style="color:var(--text-muted)">—</span>'}</td>
-      <td><span class="pin-display">${'•'.repeat(c.pin?.length||4)}</span></td>
       <td style="font-size:0.82rem;color:var(--text-muted);">${c.email||'<span style="color:var(--text-muted)">—</span>'}</td>
       <td>${acessoBadge}</td>
       <td>${c.ativo ? '<span class="badge badge-success">Ativo</span>' : '<span class="badge badge-neutral">Inativo</span>'}</td>
@@ -1721,20 +1716,17 @@ function renderColaboradores() {
         <button class="btn btn-danger btn-icon btn-sm" onclick="deleteColaborador(${c.id})">🗑</button>
       </div></td>
     </tr>`;
-  }).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores</div></div></td></tr>`;
+  }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Sem colaboradores</div></div></td></tr>`;
 }
 
 function saveColaborador() {
   const nome = document.getElementById('colabNome').value.trim();
-  const pin = document.getElementById('colabPin').value.trim();
   if (!nome) { toast('Nome obrigatório', 'error'); return; }
-  if (!pin || pin.length < 4) { toast('PIN deve ter mínimo 4 dígitos', 'error'); return; }
   const editId = document.getElementById('colabEditId').value;
 
   const payload = {
     nome,
     cargo: document.getElementById('colabCargo').value.trim(),
-    pin,
     email: document.getElementById('colabEmail').value.trim(),
     ativo: parseInt(document.getElementById('colabAtivo').value),
   };
@@ -1765,7 +1757,7 @@ function saveColaborador() {
   if (editId) {
     const c = DB.colaboradores.find(x=>x.id==editId);
     if (c) {
-      c.nome = payload.nome; c.cargo = payload.cargo; c.pin = payload.pin;
+      c.nome = payload.nome; c.cargo = payload.cargo;
       c.email = payload.email; c.ativo = payload.ativo;
       if (username) c.username = username;
       if (password) c.portal_password = password;
@@ -1785,7 +1777,6 @@ function editColaborador(id) {
   document.getElementById('colabEditId').value = id;
   document.getElementById('colabNome').value = c.nome;
   document.getElementById('colabCargo').value = c.cargo||'';
-  document.getElementById('colabPin').value = c.pin;
   document.getElementById('colabEmail').value = c.email||'';
   document.getElementById('colabAtivo').value = c.ativo;
   document.getElementById('colabUsername').value = c.username || '';
@@ -2117,8 +2108,11 @@ function saveAtribuicao() {
       body: JSON.stringify(payload)
     })
     .then(r => r.json())
-    .then(() => { toast('Atribuição guardada', 'success'); closeModal('modalAtribuicao'); loadAtribuicoes(); })
-    .catch(() => toast('Erro ao guardar atribuição', 'error'));
+    .then(d => { 
+      if (d.success === false) { toast('Erro: ' + d.error, 'error'); return; }
+      toast('Atribuição guardada', 'success'); closeModal('modalAtribuicao'); loadAtribuicoes(); 
+    })
+    .catch(e => toast('Erro ao guardar atribuição: ' + e.message, 'error'));
   } else {
     if (!DB.atribuicoes) DB.atribuicoes = [];
     if (editId) {
@@ -2235,7 +2229,7 @@ function openModal(id) {
   if (id === 'modalColaborador') {
     document.getElementById('modalColabTitle').textContent = 'Novo Colaborador';
     document.getElementById('colabEditId').value = '';
-    ['colabNome','colabCargo','colabPin','colabEmail','colabUsername','colabPassword'].forEach(x => document.getElementById(x).value = '');
+    ['colabNome','colabCargo','colabEmail','colabUsername','colabPassword'].forEach(x => document.getElementById(x).value = '');
     document.getElementById('colabAtivo').value = '1';
     document.getElementById('colabForceChange').checked = false;
   }

@@ -1163,7 +1163,7 @@
         state.colabId = extractColabId(state.token);
         persistSession();
 
-        if (data.force_password_change === true) {
+        if (data.force_password_change === true || data.force_password_change === 1) {
           showPasswordChange();
           toast('Define uma nova password para continuar.', 'success');
         } else {
@@ -1617,10 +1617,13 @@
       }
       try {
         qr.stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' },
-        focusMode:   { ideal: 'continuous' },
-        width:       { ideal: 1280 },
-        height:      { ideal: 720 }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          video: {
+            facingMode: { ideal: 'environment' },
+            focusMode: { ideal: 'continuous' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            advanced: [{ focusMode: 'continuous' }]
+          }
         });
         const video = document.getElementById('qrVideo');
         video.srcObject = qr.stream;
@@ -1677,11 +1680,17 @@
       try {
         let payload;
         try { payload = JSON.parse(dados); } catch (e) { /* formato simples token:lojaId */ const p = dados.split(':'); payload = p.length>=2 ? { token: p[0], lojaId: p[1] } : { token: dados }; }
-        const token = localStorage.getItem(STORAGE.token) || state.token;
+        const sessionToken = localStorage.getItem(STORAGE.token) || state.token || '';
         const data = await apiFetch('/api/ponto/validar', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ token: payload.token || dados, lojaId: payload.lojaId || '' })
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionToken
+          },
+          body: JSON.stringify({ 
+            token: payload.token || (dados.includes(':') ? dados.split(':')[0] : dados), 
+            lojaId: String(payload.lojaId || (dados.includes(':') ? dados.split(':')[1] : ''))
+          })
         }, false);
 
         const hora = data.hora || new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
@@ -1724,7 +1733,7 @@
       if (!listEl) return;
       listEl.innerHTML = '<p class="historico-empty">A carregar...</p>';
       try {
-        const token = localStorage.getItem(STORAGE.token) || state.token;
+        const token = localStorage.getItem(STORAGE.token) || state.token || '';
         const data = await apiFetch('/api/ponto/hoje', {
           method: 'GET',
           headers: { 'Authorization': 'Bearer ' + token }
