@@ -1986,9 +1986,11 @@ function renderAtribuicoesTabela(container, list) {
     return '<span class="badge badge-neutral">' + p + '</span>';
   };
   const diasLabel = dias => {
-    if (!dias || !dias.length) return '—';
+    if (!dias) return '—';
+    const arr = Array.isArray(dias) ? dias : String(dias).split(',').map(Number).filter(Boolean);
+    if (!arr.length) return '—';
     const nomes = ['','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-    return dias.map(d => nomes[d] || d).join(', ');
+    return arr.map(d => nomes[d] || d).join(', ');
   };
   if (!list.length) {
     container.innerHTML = `
