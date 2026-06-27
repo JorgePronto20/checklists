@@ -1485,13 +1485,9 @@
           body: JSON.stringify(payload)
         }, true);
 
-        const updated = state.assignments.find((item) => String(item.id) === String(state.currentAssignment.id));
-        if (updated) updated.concluida = true;
         closeModal();
-        renderTabs();
-        renderCards();
-        toast('Checklist submetida com sucesso.', 'success');
-        fetchToday({ silent: true });
+        await fetchToday({ silent: true });
+        toast('Checklist submetida com sucesso! ✅', 'success');
       } catch (error) {
         toast(error.message || 'Não foi possível submeter a checklist.', 'error');
       } finally {
@@ -1815,11 +1811,7 @@
       if (!listEl) return;
       listEl.innerHTML = '<p class="historico-empty">A carregar...</p>';
       try {
-        const token = localStorage.getItem(STORAGE.token) || state.token || '';
-        const resp = await apiFetch('/api/ponto/hoje', {
-          method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + token }
-        }, false);
+        const resp = await apiFetch('/api/ponto/hoje', { method: 'GET' }, true);
         // worker devolve { success: true, data: [...] }
         const data = (resp && resp.data !== undefined) ? resp.data : resp;
         const items = Array.isArray(data) ? data : (Array.isArray(data.picagens) ? data.picagens : []);

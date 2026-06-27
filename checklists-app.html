@@ -1355,7 +1355,7 @@ function navigate(page, el) {
 }
 
 function refreshCurrentPage() {
-  const fns = { dashboard: renderDashboard, checklists: renderChecklists, alertas: renderAlertas, modelos: loadModelos, colaboradores: loadColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
+  const fns = { dashboard: renderDashboard, checklists: loadChecklists, alertas: loadAlertas, modelos: loadModelos, colaboradores: loadColaboradores, atividade: renderAtividade, executar: renderExecutar, config: renderConfig, atribuicoes: loadAtribuicoes, lojas: loadLojas, folhaponto: initFolhaPonto };
   if (fns[currentPage]) fns[currentPage]();
 }
 
@@ -1475,6 +1475,26 @@ function renderDashboard() {
 }
 
 // ===================== CHECKLISTS =====================
+function loadChecklists() {
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/checklists', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => {
+      DB.checklists = (d.data || d.results || []).map(c => ({
+        ...c,
+        respostas: typeof c.respostas === 'string' ? JSON.parse(c.respostas || '{}') : (c.respostas || {})
+      }));
+      renderChecklists();
+    })
+    .catch(() => renderChecklists());
+  } else {
+    renderChecklists();
+  }
+}
+
 function renderChecklists() {
   const search = document.getElementById('searchChecklists')?.value?.toLowerCase() || '';
   const filterEstado = document.getElementById('filterEstado')?.value || '';
@@ -1551,6 +1571,23 @@ function deleteChecklist(id) {
 }
 
 // ===================== ALERTAS =====================
+function loadAlertas() {
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive) {
+    fetch(DB.config.apiUrl + '/api/alertas', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => {
+      DB.alertas = d.data || d.results || [];
+      renderAlertas();
+    })
+    .catch(() => renderAlertas());
+  } else {
+    renderAlertas();
+  }
+}
+
 function renderAlertas() {
   const list = [...DB.alertas].sort((a,b) => { const p={alta:0,media:1,baixa:2}; return p[a.prioridade]-p[b.prioridade]; });
   document.getElementById('alertasList').innerHTML = list.length ? list.map(a => `
@@ -2743,24 +2780,38 @@ function initFolhaPonto() {
   const selAno = document.getElementById('filtroFolhaAno');
   if (!selColab || !selAno) return;
 
-  // Colaboradores
-  selColab.innerHTML = '<option value="">Todos</option>' +
-    DB.colaboradores.map(c => `<option value="${c.id}">${escHtml(c.nome)}</option>`).join('');
+  const preencher = () => {
+    // Colaboradores
+    selColab.innerHTML = '<option value="">Todos</option>' +
+      DB.colaboradores.map(c => `<option value="${c.id}">${escHtml(c.nome)}</option>`).join('');
 
-  // Anos: últimos 3 anos incluindo actual
-  const anoAtual = new Date().getFullYear();
-  selAno.innerHTML = [anoAtual, anoAtual-1, anoAtual-2].map(a =>
-    `<option value="${a}"${a===anoAtual?' selected':''}>${a}</option>`
-  ).join('');
+    // Anos: últimos 3 anos incluindo actual
+    const anoAtual = new Date().getFullYear();
+    selAno.innerHTML = [anoAtual, anoAtual-1, anoAtual-2].map(a =>
+      `<option value="${a}"${a===anoAtual?' selected':''}>${a}</option>`
+    ).join('');
 
-  // Mês actual
-  const mesAtual = new Date().getMonth() + 1;
-  document.getElementById('filtroFolhaMes').value = mesAtual;
+    // Mês actual
+    const mesAtual = new Date().getMonth() + 1;
+    document.getElementById('filtroFolhaMes').value = mesAtual;
 
-  // Mostrar botão Enviar só se tiver admin_secret
-  const adminSecret = localStorage.getItem('admin_secret') || DB.config.adminSecret;
-  const btnWrap = document.getElementById('btnEnviarFolhaWrap');
-  if (btnWrap) btnWrap.style.display = adminSecret ? 'block' : 'none';
+    // Mostrar botão Enviar só se tiver admin_secret
+    const adminSecret = localStorage.getItem('admin_secret') || DB.config.adminSecret;
+    const btnWrap = document.getElementById('btnEnviarFolhaWrap');
+    if (btnWrap) btnWrap.style.display = adminSecret ? 'block' : 'none';
+  };
+
+  const isLive = DB.config.mode === 'live' && DB.config.apiUrl;
+  if (isLive && DB.colaboradores.length === 0) {
+    fetch(DB.config.apiUrl + '/api/colaboradores', {
+      headers: { 'Authorization': 'Bearer ' + (DB.config.adminSecret || '') }
+    })
+    .then(r => r.json())
+    .then(d => { DB.colaboradores = d.data || d.results || d || []; preencher(); })
+    .catch(() => preencher());
+  } else {
+    preencher();
+  }
 }
 
 function loadFolhaPonto() {
@@ -2809,7 +2860,7 @@ function renderTabelaPonto(registos) {
     const colabId = r.colaborador_id;
     const data = r.data || (r.data_hora ? r.data_hora.split('T')[0] : '—');
     const key = colabId + '|' + data;
-    if (!grupos[key]) grupos[key] = { colabId, data, entradas: [], saidas: [], local: r.loja_nome || r.local || '—' };
+    if (!grupos[key]) grupos[key] = { colabId, colaborador_nome: r.colaborador_nome, data, entradas: [], saidas: [], local: r.loja_nome || r.local || '—' };
     if (r.tipo === 'entrada' || r.tipo === 'in') grupos[key].entradas.push(r.hora || r.hora_entrada || (r.data_hora ? r.data_hora.split('T')[1].substring(0,5) : '—'));
     if (r.tipo === 'saida' || r.tipo === 'out') grupos[key].saidas.push(r.hora || r.hora_saida || (r.data_hora ? r.data_hora.split('T')[1].substring(0,5) : '—'));
   });
@@ -2817,6 +2868,7 @@ function renderTabelaPonto(registos) {
   // Se os dados já vêm pré-agrupados (API mensal)
   const linhas = registos[0]?.entrada !== undefined ? registos : Object.values(grupos).map(g => ({
     colaborador_id: g.colabId,
+    colaborador_nome: g.colaborador_nome,
     data: g.data,
     entrada: g.entradas[0] || '—',
     saida: g.saidas[0] || null,
