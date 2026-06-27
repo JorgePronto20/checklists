@@ -469,6 +469,13 @@
       overflow: hidden;
     }
 
+    #executionForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
     .modal-head,
     .modal-foot {
       padding: 20px 22px;
@@ -684,17 +691,29 @@
       .modal-foot {
         padding: 14px 16px;
       }
+      #executionForm {
+        height: 100%;
+        min-height: 0;
+      }
       .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: 16px;
-        padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        padding-bottom: 140px;
       }
       .modal-foot {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
         flex-direction: column-reverse;
-        padding-bottom: calc(14px + env(safe-area-inset-bottom));
-        background: rgba(2, 6, 23, 0.96);
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(2, 6, 23, 0.82), rgba(2, 6, 23, 0.98));
+        box-shadow: 0 -12px 30px rgba(0,0,0,0.35);
       }
-      .modal-foot .btn { width: 100%; }
-      .preview-img { max-height: 34vh; }
+      .modal-foot .btn { width: 100%; min-height: 50px; }
+      .preview-img { max-height: 28vh; }
       .choice-row { grid-template-columns: 1fr; }
     }
 
