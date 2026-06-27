@@ -1652,7 +1652,8 @@
     const qr = {
       stream: null,
       animFrame: null,
-      processing: false
+      processing: false,
+      detector: null
     };
 
     function showPontoState(name) {
@@ -1671,26 +1672,50 @@
       }
       try {
         qr.stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            focusMode: { ideal: 'continuous' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            advanced: [{ focusMode: 'continuous' }]
-          }
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
         });
+        const track = qr.stream.getVideoTracks()[0];
+        if (track && track.applyConstraints) {
+          try { await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch (_) {}
+        }
         const video = document.getElementById('qrVideo');
         video.srcObject = qr.stream;
         await video.play();
         showPontoState('camera');
         qr.processing = false;
-        scanFrame();
+        if ('BarcodeDetector' in window) {
+          qr.detector = new BarcodeDetector({ formats: ['qr_code'] });
+          scanFrameNative();
+        } else {
+          scanFrame();
+        }
       } catch (error) {
         const msg = error.name === 'NotAllowedError'
           ? 'Permissão de câmara negada. Autoriza o acesso à câmara no browser.'
           : 'Não foi possível aceder à câmara: ' + (error.message || error.name);
         toast(msg, 'error');
       }
+    }
+
+    async function scanFrameNative() {
+      if (!qr.stream || qr.processing) return;
+      const video = document.getElementById('qrVideo');
+      if (!video || video.readyState < 2) {
+        qr.animFrame = requestAnimationFrame(scanFrameNative);
+        return;
+      }
+      try {
+        const codes = await qr.detector.detect(video);
+        if (codes && codes.length > 0) {
+          qr.processing = true;
+          const overlay = document.getElementById('qrOverlay');
+          if (overlay) overlay.classList.add('detected');
+          stopQRScanner();
+          processarQR(codes[0].rawValue);
+          return;
+        }
+      } catch (_) {}
+      qr.animFrame = requestAnimationFrame(scanFrameNative);
     }
 
     function stopQRScanner() {
